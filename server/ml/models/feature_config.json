@@ -1,0 +1,62 @@
+{
+  "feature_names": [
+    "txn_count_1h",
+    "txn_count_24h",
+    "amount_received_1h",
+    "amount_sent_1h",
+    "avg_time_between_txns",
+    "is_off_hours",
+    "is_round_amount",
+    "is_near_threshold",
+    "immediate_passthrough",
+    "cross_channel_mixing",
+    "account_age_days",
+    "is_new_account",
+    "no_prior_history",
+    "previously_flagged",
+    "unique_senders_24h",
+    "unique_receivers_24h",
+    "passthrough_ratio",
+    "suspect_registry_match",
+    "linked_to_flagged"
+  ],
+  "feature_count": 19,
+  "feature_importance": {
+    "txn_count_1h": 0.03337768092751503,
+    "txn_count_24h": 0.4036024808883667,
+    "amount_received_1h": 0.0030606051441282034,
+    "amount_sent_1h": 0.004810163285583258,
+    "avg_time_between_txns": 0.00042940545245073736,
+    "is_off_hours": 0.0,
+    "is_round_amount": 0.0,
+    "is_near_threshold": 0.0,
+    "immediate_passthrough": 0.0,
+    "cross_channel_mixing": 0.0,
+    "account_age_days": 0.00024653199943713844,
+    "is_new_account": 0.0,
+    "no_prior_history": 0.0,
+    "previously_flagged": 0.0,
+    "unique_senders_24h": 0.5544731020927429,
+    "unique_receivers_24h": 0.0,
+    "passthrough_ratio": 0.0,
+    "suspect_registry_match": 0.0,
+    "linked_to_flagged": 0.0
+  },
+  "thresholds": {
+    "high_risk": 0.75,
+    "medium_risk": 0.45,
+    "anomaly": -0.1
+  },
+  "model_info": {
+    "xgboost": {
+      "n_estimators": 200,
+      "max_depth": 6,
+      "training_samples": 20000,
+      "fraud_ratio": 0.08
+    },
+    "isolation_forest": {
+      "n_estimators": 150,
+      "contamination": 0.08
+    }
+  }
+}

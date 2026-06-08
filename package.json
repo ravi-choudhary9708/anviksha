@@ -1,0 +1,24 @@
+{
+  "name": "anviksha",
+  "version": "1.0.0",
+  "description": "Anviksha — AI-Powered Mule Account & Fraud Detection System",
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
+    "dev:server": "node --watch server/index.js",
+    "dev:client": "cd client && npx vite --port 5173",
+    "seed": "node server/generators/seed-data.js",
+    "train": "python server/ml/train_model.py",
+    "setup": "npm install && cd client && npm install && cd .. && npm run seed"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.7.0",
+    "concurrently": "^9.1.0",
+    "cors": "^2.8.5",
+    "dotenv": "^17.4.2",
+    "express": "^4.21.0",
+    "onnxruntime-node": "^1.20.0",
+    "uuid": "^11.0.0",
+    "ws": "^8.18.0"
+  }
+}
