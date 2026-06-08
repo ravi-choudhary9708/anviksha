@@ -28,9 +28,7 @@ It ingests a live stream of UPI, NEFT, IMPS, and ATM transactions, extracts **19
 
 ---
 
-## 📸 Dashboard Preview
 
-![Dashboard Preview](docs/images/dashboard.png)
 
 ---
 
@@ -48,6 +46,11 @@ The system is structured as a monorepo:
 ## 🤖 ML Pipeline
 
 ![ML Pipeline](docs/images/ml_pipeline.png)
+
+### Model Performance Insights
+
+![XGBoost Model Performance](docs/images/xgboost_model.png)
+![Isolation Forest Anomalies](docs/images/isolation_forest.png)
 
 ### How it works
 
