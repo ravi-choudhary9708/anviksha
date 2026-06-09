@@ -25,7 +25,6 @@ router.get('/suspect-registry', (req, res) => {
   }
 });
 
-// POST /api/regulatory/suspect-registry — Add new entry (simulates live I4C feed)
 router.post('/suspect-registry', (req, res) => {
   try {
     const { identifier_type, identifier_value, source, complaint_ref, reason } = req.body;
@@ -47,7 +46,6 @@ router.post('/suspect-registry', (req, res) => {
 
     stmts.insertSuspect.run(entry);
 
-    // Update feed status
     if (feedStatus[entry.source]) {
       feedStatus[entry.source].lastUpdate = new Date().toISOString();
       feedStatus[entry.source].count++;
@@ -62,12 +60,10 @@ router.post('/suspect-registry', (req, res) => {
   }
 });
 
-// GET /api/regulatory/feed-status — Status of all regulatory feeds
 router.get('/feed-status', (req, res) => {
   try {
     const suspects = stmts.getAllSuspects.all();
 
-    // Update counts from DB
     for (const source of Object.keys(feedStatus)) {
       feedStatus[source].count = suspects.filter(s => s.source === source).length;
     }
@@ -78,7 +74,6 @@ router.get('/feed-status', (req, res) => {
   }
 });
 
-// Export feed status updater for use by I4C generator
 export function updateFeedStatus(source) {
   if (feedStatus[source]) {
     feedStatus[source].lastUpdate = new Date().toISOString();

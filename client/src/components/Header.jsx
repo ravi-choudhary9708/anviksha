@@ -8,7 +8,7 @@ export default function Header({ stats, wsConnected }) {
   return (
     <header className="app-header">
       <div className="header-inner">
-        {/* Brand */}
+        {}
         <div className="header-brand">
           <div className="brand-logo">A</div>
           <div>
@@ -17,7 +17,7 @@ export default function Header({ stats, wsConnected }) {
           </div>
         </div>
 
-        {/* Live Stats */}
+        {}
         <div className="header-stats">
           <div className="header-stat">
             <div className="header-stat-value" style={{ color: 'var(--text-primary)' }}>
@@ -55,7 +55,7 @@ export default function Header({ stats, wsConnected }) {
 
           <div style={{ width: 1, height: 28, background: 'var(--border)' }} />
 
-          {/* ML Engine Badge */}
+          {}
           <div style={{
             padding: '4px 10px',
             background: 'rgba(124, 58, 237, 0.12)',
@@ -71,7 +71,7 @@ export default function Header({ stats, wsConnected }) {
             {stats?.mlEngine || 'ML Engine'}
           </div>
 
-          {/* Live WS indicator */}
+          {}
           <div className="live-indicator">
             {wsConnected
               ? <><div className="live-dot" />LIVE</>

@@ -39,11 +39,10 @@ router.get('/graph', (req, res) => {
   }
 });
 
-// GET /api/dashboard/timeline — Flagged transaction timeline
 router.get('/timeline', (req, res) => {
   try {
     const timeline = stmts.getFlaggedTimeline.all();
-    return res.json({ timeline: timeline.reverse() }); // chronological order
+    return res.json({ timeline: timeline.reverse() });
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }

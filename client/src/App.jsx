@@ -1,11 +1,12 @@
 import { useState, useCallback, useRef } from 'react';
-import { Activity, AlertTriangle, Share2, BarChart2, Radio } from 'lucide-react';
+import { Activity, AlertTriangle, Share2, BarChart2, Radio, Brain } from 'lucide-react';
 import Header from './components/Header.jsx';
 import LiveFeed from './pages/LiveFeed.jsx';
 import FlaggedAccounts from './pages/FlaggedAccounts.jsx';
 import NetworkGraph from './pages/NetworkGraph.jsx';
 import Analytics from './pages/Analytics.jsx';
 import RegulatoryFeeds from './pages/RegulatoryFeeds.jsx';
+import ModelInsights from './pages/ModelInsights.jsx';
 import { useWebSocket, useApi } from './hooks/useAnviksha.js';
 import { Spinner } from './components/ui.jsx';
 
@@ -14,6 +15,7 @@ const TABS = [
   { id: 'accounts',   label: 'Flagged Accounts', icon: <AlertTriangle size={13} /> },
   { id: 'graph',      label: 'Network Graph',    icon: <Share2 size={13} /> },
   { id: 'analytics',  label: 'Analytics',        icon: <BarChart2 size={13} /> },
+  { id: 'ml',         label: 'ML Model',         icon: <Brain size={13} /> },
   { id: 'regulatory', label: 'Regulatory Feeds', icon: <Radio size={13} /> },
 ];
 
@@ -38,34 +40,28 @@ export default function App() {
   // Initial alerts from REST
   const { data: alertsData } = useApi('/alerts?status=open&limit=20', 6000);
 
-  // Merge REST alerts with WS alerts
   const allAlerts = [
     ...alerts,
     ...(alertsData?.alerts || []).filter(a => !alerts.find(wa => wa.id === a.id)),
   ].slice(0, 50);
 
-  // WebSocket handler
   const handleWsMessage = useCallback((msg) => {
     switch (msg.type) {
       case 'transaction': {
-        // Prepend to live feed
         setFeed(prev => [msg.data, ...prev].slice(0, MAX_FEED_ITEMS));
         break;
       }
       case 'alert': {
         const { alert, account, transaction, scoring } = msg.data;
-        // Enrich alert with account info for display
         setAlerts(prev => [{ ...alert, account }, ...prev].slice(0, 50));
         setOpenAlertCount(c => c + 1);
         break;
       }
       case 'suspect_registry': {
-        // Force graph refresh on new suspect entry
         setGraphData(null);
         break;
       }
       case 'init': {
-        // Initial state on WS connect
         setOpenAlertCount(msg.data?.open_alerts || 0);
         break;
       }
@@ -76,10 +72,10 @@ export default function App() {
 
   return (
     <div className="app-layout">
-      {/* Sticky Header */}
+      {}
       <Header stats={stats} wsConnected={wsConnected} />
 
-      {/* Navigation Tabs */}
+      {}
       <div className="nav-tabs">
         {TABS.map(tab => (
           <button
@@ -97,9 +93,9 @@ export default function App() {
         ))}
       </div>
 
-      {/* Main Content */}
+      {}
       <main className="app-content">
-        {/* Stats Row */}
+        {}
         {stats && (
           <div className="stats-grid" style={{ marginBottom: 20 }}>
             <div className="stat-card">
@@ -179,11 +175,12 @@ export default function App() {
           </div>
         )}
 
-        {/* Page content */}
+        {}
         {activeTab === 'feed'       && <LiveFeed feed={feed} />}
         {activeTab === 'accounts'   && <FlaggedAccounts alerts={allAlerts} />}
         {activeTab === 'graph'      && <NetworkGraph graphData={resolvedGraph} loading={graphLoading && !resolvedGraph} />}
         {activeTab === 'analytics'  && <Analytics stats={stats} />}
+        {activeTab === 'ml'         && <ModelInsights />}
         {activeTab === 'regulatory' && <RegulatoryFeeds />}
       </main>
     </div>

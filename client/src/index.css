@@ -609,3 +609,88 @@ code, .mono {
 .font-bold    { font-weight: 700; }
 .truncate     { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .w-full       { width: 100%; }
+
+
+
+/* Model Insights Page */
+.model-insights { display: flex; flex-direction: column; gap: 24px; }
+.metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px; }
+.metric-card {
+  background: var(--bg-card);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+.metric-circle {
+  position: relative;
+  width: 80px;
+  height: 80px;
+}
+.metric-circle svg { transform: rotate(-90deg); }
+.metric-circle-value {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+.metric-label { font-size: 0.8rem; color: var(--text-muted); text-align: center; }
+.confusion-grid {
+  display: grid;
+  grid-template-columns: auto 1fr 1fr;
+  grid-template-rows: auto 1fr 1fr;
+  gap: 4px;
+  max-width: 400px;
+}
+.confusion-cell {
+  padding: 16px;
+  border-radius: 8px;
+  text-align: center;
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+.confusion-cell small { display: block; font-weight: 400; font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; }
+.confusion-header {
+  padding: 8px;
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+}
+.golden-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; }
+.golden-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06);
+}
+.golden-chip.in-model { border-color: rgba(245, 158, 11, 0.3); color: #f59e0b; }
+.golden-chip.not-in-model { color: var(--text-muted); }
+.section-card {
+  background: var(--bg-card);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 12px;
+  padding: 24px;
+}
+.section-card h3 {
+  margin: 0 0 16px 0;
+  font-size: 1rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.two-col-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+@media (max-width: 768px) { .two-col-layout { grid-template-columns: 1fr; } }

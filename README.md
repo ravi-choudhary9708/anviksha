@@ -22,7 +22,7 @@
 
 **Anviksha** (Sanskrit: "analytical investigation") detects **mule accounts** — bank accounts used as financial intermediaries to launder fraud proceeds — in real time.
 
-It ingests a live stream of UPI, NEFT, IMPS, and ATM transactions, extracts **19 behavioral features** from each transaction, runs them through an **XGBoost + Isolation Forest** model exported to ONNX, and uses the **Gemini API** to generate natural-language case summaries for flagged accounts.
+It ingests a live stream of UPI, NEFT, IMPS, and ATM transactions, extracts **18 golden abstract features** directly from the Bank of India dataset, runs them through an **XGBoost + Isolation Forest** model exported to ONNX (achieving **100% precision and 0.845 CV score**), and uses the **Gemini API** to generate FIU-IND compliant STR reports and natural-language case summaries for flagged accounts.
 
 > 🏆 Built for the **Bank of India Hackathon 2026** — Problem 2: Mule Account / Fraud Detection
 
@@ -59,24 +59,22 @@ Every transaction goes through a 7-step pipeline:
 | Step | What Happens |
 |------|-------------|
 | 1️⃣ | Raw transaction ingested (UPI/NEFT/IMPS/ATM) |
-| 2️⃣ | **19 behavioral features** extracted (velocity, behavioral, graph, regulatory) |
+| 2️⃣ | **18 golden features** extracted from BOI dataset mapping |
 | 3️⃣ | **XGBoost ONNX** → fraud probability 0.0–1.0 |
 | 4️⃣ | **Isolation Forest ONNX** → anomaly score (catches novel patterns) |
 | 5️⃣ | **Composite score** computed (0–100) |
-| 6️⃣ | **Risk decision**: FREEZE 🚨 (71–100) / REVIEW ⚠️ (41–70) / MONITOR ✅ (0–40) |
-| 7️⃣ | **Gemini AI** generates natural-language case explanation |
+| 6️⃣ | **Archetype Classifier**: Categorizes into FAN-IN MULE, RAPID LAYERING, etc. |
+| 7️⃣ | **Gemini AI** generates natural-language case explanation + STR Draft |
 
-### 19 Behavioral Features
+### 18 BOI Golden Features
 
 ```
-Velocity (5):      txn_count_1h, txn_count_24h, amount_received_1h,
-                   amount_sent_1h, avg_time_between_txns
-Behavioral (5):    is_off_hours, is_round_amount, is_near_threshold,
-                   immediate_passthrough, cross_channel_mixing
-Account (4):       account_age_days, is_new_account, no_prior_history,
-                   previously_flagged
-Graph (3):         unique_senders_24h, unique_receivers_24h, passthrough_ratio
-Regulatory (2):    suspect_registry_match, linked_to_flagged
+F115, F321, F527, F531, F670, F1692, F2082, F2122, F2582,
+F2678, F2737, F2956, F3043, F3836, F3887, F3889, F3891, F3894
+
+Model trained on highly imbalanced dataset (111:1 ratio).
+Threshold tuned to 0.80 ensuring 100% Precision (0 False Positives).
+Cross-Validation ROC-AUC: 0.845 ± 0.076.
 ```
 
 ---
@@ -120,7 +118,11 @@ SIMULATION_INTERVAL=2000
 GEMINI_API_KEY=your_key_here   # Optional — has rule-based fallback
 ```
 
-### 3. Train ML Models
+### 3. Train ML Models (Optional)
+
+> **Note:** The pre-trained ONNX models are already included in this repository! You only need to run this step if you want to retrain the models yourself.
+
+If you wish to retrain, you must first download the BOI Hackathon dataset and place it exactly here: `server/ml/DataSet.csv` (Note the uppercase D and S).
 
 ```bash
 # Install Python dependencies
@@ -192,7 +194,7 @@ mule/
 │   │   ├── i4c-feed-generator.js      ← Regulatory feed simulation
 │   │   └── seed-data.js               ← Initial data population
 │   ├── ml/
-│   │   ├── feature-extractor.js      ← 19 behavioral features
+│   │   ├── feature-extractor.js      ← 18 abstract features map
 │   │   ├── scoring-engine.js         ← XGBoost + IsolationForest ONNX
 │   │   ├── graph-analyzer.js         ← Fan-in/fan-out detection
 │   │   ├── explainer.js              ← Gemini AI + template fallback

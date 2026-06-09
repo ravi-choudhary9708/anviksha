@@ -3,20 +3,11 @@
 // ============================================================
 // Populates the database with realistic initial data:
 //   - 50 accounts (45 normal + 5 mule accounts)
-//   - 200 historical transactions
-//   - 10 suspect registry entries
-//   - Initial account connections
-//
-// Run: node server/generators/seed-data.js
-// ============================================================
 
 import 'dotenv/config';
 import { v4 as uuidv4 } from 'uuid';
 import { db, stmts } from '../db/index.js';
 
-// ============================================================
-// Indian names and bank data for realistic demo
-// ============================================================
 const FIRST_NAMES = [
   'Aarav', 'Vivaan', 'Aditya', 'Vihaan', 'Arjun', 'Reyansh', 'Sai',
   'Arnav', 'Dhruv', 'Kabir', 'Ananya', 'Diya', 'Priya', 'Isha', 'Riya',
@@ -66,16 +57,11 @@ function randomDate(daysBack) {
   return date.toISOString();
 }
 
-// ============================================================
-// Seed Functions
-// ============================================================
-
 function seedAccounts() {
   console.log('[SEED] Creating 50 accounts (45 normal + 5 mule)...');
   
   const accounts = [];
   
-  // 45 Normal accounts — established, verified, regular banking
   for (let i = 0; i < 45; i++) {
     const name = randomName();
     const account = {
@@ -88,15 +74,14 @@ function seedAccounts() {
       phone: randomPhone(),
       account_type: Math.random() < 0.7 ? 'savings' : (Math.random() < 0.5 ? 'current' : 'salary'),
       kyc_status: 'verified',
-      opened_date: randomDate(365 * 3), // 0-3 years old
-      risk_score: Math.random() * 15,    // Low initial risk
+      opened_date: randomDate(365 * 3),
+      risk_score: Math.random() * 15,
       status: 'active',
       is_mule: 0,
     };
     accounts.push(account);
   }
   
-  // 5 Mule accounts — new, suspicious patterns built-in
   const muleNames = [
     'Ravi Dubey', 'Sonia Khatri', 'Farhan Ansari', 'Deepika Yadav', 'Kunal Thakur'
   ];
@@ -108,20 +93,19 @@ function seedAccounts() {
       account_number: randomAccountNumber(),
       account_holder: name,
       ifsc_code: randomIFSC(),
-      bank_name: 'Bank of India', // Mules at our bank
+      bank_name: 'Bank of India',
       upi_id: randomUPI(name),
       phone: randomPhone(),
       account_type: 'savings',
       kyc_status: Math.random() < 0.3 ? 'pending' : 'verified',
-      opened_date: randomDate(60), // Opened in last 2 months (new accounts)
-      risk_score: 30 + Math.random() * 30, // Moderate initial risk
+      opened_date: randomDate(60),
+      risk_score: 30 + Math.random() * 30,
       status: 'active',
-      is_mule: 1, // Ground truth label (not shown in UI)
+      is_mule: 1,
     };
     accounts.push(account);
   }
   
-  // Insert all accounts
   const insertMany = db.transaction((accs) => {
     for (const acc of accs) {
       stmts.insertAccount.run(acc);
@@ -140,7 +124,6 @@ function seedTransactions(accounts) {
   const muleAccounts = accounts.filter(a => a.is_mule);
   const transactions = [];
   
-  // 150 Normal transactions (spread over last 7 days)
   for (let i = 0; i < 150; i++) {
     const sender = normalAccounts[Math.floor(Math.random() * normalAccounts.length)];
     let receiver;
@@ -148,7 +131,7 @@ function seedTransactions(accounts) {
       receiver = normalAccounts[Math.floor(Math.random() * normalAccounts.length)];
     } while (receiver.id === sender.id);
     
-    const types = ['UPI', 'NEFT', 'IMPS', 'UPI', 'UPI']; // UPI-heavy
+    const types = ['UPI', 'NEFT', 'IMPS', 'UPI', 'UPI'];
     const descriptions = [
       'Grocery payment', 'Bill payment', 'Family transfer', 'Rent',
       'Mobile recharge', 'Shopping', 'EMI', 'Subscription',
@@ -172,12 +155,11 @@ function seedTransactions(accounts) {
     transactions.push(txn);
   }
   
-  // 50 Suspicious transactions (mule patterns)
   for (let i = 0; i < 50; i++) {
     const mule = muleAccounts[Math.floor(Math.random() * muleAccounts.length)];
     const normal = normalAccounts[Math.floor(Math.random() * normalAccounts.length)];
     
-    const isFanIn = Math.random() < 0.6; // 60% fan-in, 40% fan-out
+    const isFanIn = Math.random() < 0.6;
     const sender = isFanIn ? normal : mule;
     const receiver = isFanIn ? mule : normal;
     
@@ -185,12 +167,12 @@ function seedTransactions(accounts) {
       id: uuidv4(),
       txn_ref: `TXN${Date.now() - i * 50000}S${i.toString().padStart(4, '0')}`,
       type: Math.random() < 0.5 ? 'NEFT' : 'IMPS',
-      amount: Math.round((Math.random() * 150000 + 20000) / 1000) * 1000, // Round amounts
+      amount: Math.round((Math.random() * 150000 + 20000) / 1000) * 1000,
       sender_account_id: sender.id,
       receiver_account_id: receiver.id,
       channel: 'digital',
       description: 'Fund transfer',
-      timestamp: randomDate(3), // More recent
+      timestamp: randomDate(3),
       risk_score: 40 + Math.random() * 40,
       is_flagged: Math.random() < 0.4 ? 1 : 0,
       features_json: null,
@@ -199,7 +181,6 @@ function seedTransactions(accounts) {
     transactions.push(txn);
   }
   
-  // Insert all and build connections
   const insertMany = db.transaction((txns) => {
     for (const txn of txns) {
       stmts.insertTransaction.run(txn);
@@ -224,11 +205,9 @@ function seedSuspectRegistry(accounts) {
   const muleAccounts = accounts.filter(a => a.is_mule);
   const entries = [];
   
-  // Add some mule identifiers to suspect registry
   for (let i = 0; i < Math.min(3, muleAccounts.length); i++) {
     const mule = muleAccounts[i];
     
-    // Add phone number
     entries.push({
       id: uuidv4(),
       identifier_type: 'phone',
@@ -240,7 +219,6 @@ function seedSuspectRegistry(accounts) {
       status: 'active',
     });
     
-    // Add UPI ID for some
     if (Math.random() < 0.7) {
       entries.push({
         id: uuidv4(),
@@ -255,7 +233,6 @@ function seedSuspectRegistry(accounts) {
     }
   }
   
-  // Add some random external suspects
   for (let i = 0; i < 5; i++) {
     entries.push({
       id: uuidv4(),
@@ -274,7 +251,7 @@ function seedSuspectRegistry(accounts) {
   
   const insertMany = db.transaction((items) => {
     for (const item of items) {
-      try { stmts.insertSuspect.run(item); } catch(e) { /* ignore duplicates */ }
+      try { stmts.insertSuspect.run(item); } catch(e) {  }
     }
   });
   insertMany(entries);
@@ -313,15 +290,10 @@ function seedAlerts(accounts) {
   console.log(`[SEED] ✅ Created ${alerts.length} alerts`);
 }
 
-// ============================================================
-// Run Seed
-// ============================================================
-
 console.log('='.repeat(50));
 console.log('  Anviksha — Database Seed Script');
 console.log('='.repeat(50));
 
-// Clear existing data
 console.log('\n[SEED] Clearing existing data...');
 db.exec('DELETE FROM risk_scores');
 db.exec('DELETE FROM alerts');
@@ -330,13 +302,11 @@ db.exec('DELETE FROM transactions');
 db.exec('DELETE FROM suspect_registry');
 db.exec('DELETE FROM accounts');
 
-// Seed in order
 const accounts = seedAccounts();
 seedTransactions(accounts);
 seedSuspectRegistry(accounts);
 seedAlerts(accounts);
 
-// Summary
 const stats = stmts.getDashboardStats.get();
 console.log('\n' + '='.repeat(50));
 console.log('  Seed Complete!');

@@ -19,7 +19,7 @@ function AccountDetail({ accountId, onClose, onRefresh }) {
 
   return (
     <div className="expand-panel" style={{ padding: 20 }}>
-      {/* AI Explanation */}
+      {}
       {aiAlert?.ai_explanation && (
         <div className="alert-explanation" style={{ marginBottom: 16 }}>
           <div style={{ fontSize: '0.7rem', color: 'var(--blue)', fontWeight: 700, marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.07em' }}>
@@ -30,7 +30,7 @@ function AccountDetail({ accountId, onClose, onRefresh }) {
       )}
 
       <div className="grid-2" style={{ gap: 16, marginBottom: 16 }}>
-        {/* Account profile */}
+        {}
         <div>
           <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>Account Profile</div>
           {[
@@ -49,7 +49,7 @@ function AccountDetail({ accountId, onClose, onRefresh }) {
           ) : null)}
         </div>
 
-        {/* Graph metrics */}
+        {}
         <div>
           <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>Network Metrics</div>
           {[
@@ -67,7 +67,7 @@ function AccountDetail({ accountId, onClose, onRefresh }) {
         </div>
       </div>
 
-      {/* Recent transactions */}
+      {}
       {transactions?.length > 0 && (
         <>
           <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>Recent Transactions</div>
@@ -126,7 +126,7 @@ export default function FlaggedAccounts({ alerts }) {
 
   return (
     <div>
-      {/* Alert queue summary */}
+      {}
       {alerts.length > 0 && (
         <div className="card" style={{ marginBottom: 20 }}>
           <div className="card-header">
@@ -139,12 +139,25 @@ export default function FlaggedAccounts({ alerts }) {
                 <div className="alert-header">
                   <div>
                     <div className="alert-title">{alert.title}</div>
-                    <div className="alert-meta">
+                    <div className="alert-meta" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       {alert.alert_type?.toUpperCase()} · {alert.severity?.toUpperCase()} ·{' '}
                       {new Date(alert.created_at).toLocaleTimeString('en-IN')}
                     </div>
                   </div>
-                  <RiskBadge score={alert.account?.risk_score || 0} />
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <RiskBadge score={alert.account?.risk_score || 0} />
+                    <a
+                      href={`http://localhost:3001/api/alerts/${alert.id}/str`}
+                      download
+                      onClick={e => e.stopPropagation()}
+                      style={{
+                        fontSize: '0.68rem', padding: '3px 8px',
+                        background: 'rgba(0,212,255,0.1)', color: '#00d4ff',
+                        border: '1px solid rgba(0,212,255,0.3)', borderRadius: 4,
+                        textDecoration: 'none', whiteSpace: 'nowrap',
+                      }}
+                    >📄 STR Draft</a>
+                  </div>
                 </div>
                 {alert.ai_explanation && (
                   <div className="alert-explanation">{alert.ai_explanation}</div>
@@ -158,7 +171,7 @@ export default function FlaggedAccounts({ alerts }) {
         </div>
       )}
 
-      {/* Flagged accounts table */}
+      {}
       <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
         <div className="card-header" style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)' }}>
           <div className="card-title"><User size={14} /> Suspicious Accounts</div>
@@ -212,7 +225,7 @@ export default function FlaggedAccounts({ alerts }) {
                     {(acc.passthroughRatio * 100).toFixed(0)}%
                   </td>
                   <td><StatusPill status={acc.status || 'active'} /></td>
-                  <td onClick={e => e.stopPropagation()}>
+                  <td onClick={e => e.stopPropagation()} style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
                     <button
                       className={`btn ${isFrozen ? 'btn-ghost' : 'btn-danger'}`}
                       style={{ padding: '4px 10px', fontSize: '0.72rem' }}

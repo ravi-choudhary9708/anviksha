@@ -1,10 +1,29 @@
-// ============================================================
-// Anviksha — Express API Routes: Alerts
-// ============================================================
 import express from 'express';
 import { stmts } from '../db/index.js';
+import { generateSTRDraft, classifyFraudArchetype } from '../ml/explainer.js';
 
 const router = express.Router();
+
+// GET /api/alerts/:id/str — Download STR draft as plain text
+router.get('/:id/str', (req, res) => {
+  try {
+    const alert = stmts.getAllAlerts.all(1000).find(a => a.id === req.params.id);
+    if (!alert) return res.status(404).json({ error: 'Alert not found' });
+
+    const account = alert.account_id ? stmts.getAccount.get(alert.account_id) : null;
+    const mlScores = alert.description ? JSON.parse('{}') : {};
+    const fakeScoring = { compositeScore: account?.risk_score || 50, riskLevel: 'high', action: 'freeze_and_alert' };
+    const archetype = classifyFraudArchetype(fakeScoring, { amount: 50000 });
+
+    const strText = generateSTRDraft({ account, alert, scoring: fakeScoring, archetype });
+
+    res.setHeader('Content-Type', 'text/plain');
+    res.setHeader('Content-Disposition', `attachment; filename="STR_${account?.account_number || alert.id}_${Date.now()}.txt"`);
+    return res.send(strText);
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+});
 
 // GET /api/alerts — All alerts with optional status filter
 router.get('/', (req, res) => {
@@ -18,7 +37,6 @@ router.get('/', (req, res) => {
       alerts = alerts.filter(a => a.status === status);
     }
 
-    // Enrich with account info
     const enriched = alerts.map(alert => {
       const account = alert.account_id ? stmts.getAccount.get(alert.account_id) : null;
       return {
@@ -39,7 +57,6 @@ router.get('/', (req, res) => {
   }
 });
 
-// GET /api/alerts/stats — Summary stats
 router.get('/stats', (req, res) => {
   try {
     const stats = stmts.getAlertStats.get();
@@ -49,7 +66,6 @@ router.get('/stats', (req, res) => {
   }
 });
 
-// PATCH /api/alerts/:id — Update alert status
 router.patch('/:id', (req, res) => {
   try {
     const { status } = req.body;

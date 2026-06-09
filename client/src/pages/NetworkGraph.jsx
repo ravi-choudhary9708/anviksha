@@ -99,7 +99,6 @@ export default function NetworkGraph({ graphData, loading }) {
       .attr('stroke-width', d => Math.min(Math.log(d.value / 10000 + 1) + 1, 5))
       .attr('marker-end', 'url(#arrow)');
 
-    // Node groups
     const nodeG = g.append('g').selectAll('g')
       .data(nodes).join('g')
       .style('cursor', 'pointer')
@@ -110,7 +109,6 @@ export default function NetworkGraph({ graphData, loading }) {
       )
       .on('click', (e, d) => { e.stopPropagation(); setSelected(d); });
 
-    // Node color based on risk/status
     function nodeColor(d) {
       if (d.status === 'frozen') return '#64748b';
       if (d.riskScore >= 71 || d.isMule) return '#ff3366';
@@ -119,13 +117,11 @@ export default function NetworkGraph({ graphData, loading }) {
       return '#00e676';
     }
 
-    // Node size based on volume
     function nodeRadius(d) {
       const vol = (d.totalIn || 0) + (d.totalOut || 0);
       return Math.min(Math.max(10, Math.log(vol / 10000 + 1) * 5 + 8), 28);
     }
 
-    // Outer glow ring for high-risk
     nodeG.filter(d => d.riskScore >= 71 || d.isMule)
       .append('circle')
       .attr('r', d => nodeRadius(d) + 6)
@@ -141,7 +137,6 @@ export default function NetworkGraph({ graphData, loading }) {
       .attr('stroke', nodeColor)
       .attr('stroke-width', 2);
 
-    // Labels
     nodeG.append('text')
       .text(d => d.name.split(' ')[0])
       .attr('text-anchor', 'middle')
@@ -150,7 +145,6 @@ export default function NetworkGraph({ graphData, loading }) {
       .attr('fill', 'rgba(255,255,255,0.6)')
       .attr('font-family', 'Inter, sans-serif');
 
-    // Risk score inside node
     nodeG.filter(d => d.riskScore >= 10)
       .append('text')
       .text(d => Math.round(d.riskScore))
@@ -161,7 +155,6 @@ export default function NetworkGraph({ graphData, loading }) {
       .attr('fill', d => nodeColor(d))
       .attr('font-family', 'JetBrains Mono, monospace');
 
-    // Tick
     simulation.on('tick', () => {
       link
         .attr('x1', d => d.source.x).attr('y1', d => d.source.y)
@@ -180,7 +173,7 @@ export default function NetworkGraph({ graphData, loading }) {
 
   return (
     <div>
-      {/* Legend */}
+      {}
       <div className="card" style={{ padding: '12px 20px', marginBottom: 16 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 24, flexWrap: 'wrap', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
           <span style={{ fontWeight: 600, color: 'var(--text-secondary)' }}>Legend:</span>
@@ -197,7 +190,7 @@ export default function NetworkGraph({ graphData, loading }) {
         </div>
       </div>
 
-      {/* Graph */}
+      {}
       <div className="card" style={{ padding: 0, position: 'relative', overflow: 'hidden' }}>
         <div style={{ height: 560, background: 'radial-gradient(ellipse at center, rgba(0,212,255,0.03) 0%, transparent 70%)' }}>
           <svg ref={svgRef} style={{ width: '100%', height: '100%' }} />

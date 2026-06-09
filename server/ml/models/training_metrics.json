@@ -1,0 +1,44 @@
+{
+  "roc_auc": 0.9358,
+  "pr_auc": 0.4063,
+  "f1_score": 0.4762,
+  "precision": 1.0,
+  "recall": 0.3125,
+  "cv_roc_auc_mean": 0.845,
+  "cv_roc_auc_std": 0.0761,
+  "confusion_matrix": [
+    [
+      1801,
+      0
+    ],
+    [
+      11,
+      5
+    ]
+  ],
+  "best_threshold": 0.8,
+  "training_samples": 7265,
+  "test_samples": 1817,
+  "fraud_ratio": 0.0089,
+  "n_features": 18,
+  "golden_features": [
+    "F115",
+    "F321",
+    "F527",
+    "F531",
+    "F670",
+    "F1692",
+    "F2082",
+    "F2122",
+    "F2582",
+    "F2678",
+    "F2737",
+    "F2956",
+    "F3043",
+    "F3836",
+    "F3887",
+    "F3889",
+    "F3891",
+    "F3894"
+  ]
+}

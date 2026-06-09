@@ -1,0 +1,322 @@
+{
+  "dataset": {
+    "path": "C:\\Users\\yd358\\Desktop\\BOI\\anviksha\\server\\ml\\DataSet.csv",
+    "shape": [
+      9082,
+      3924
+    ],
+    "total_samples": 9082
+  },
+  "target": {
+    "name": "F3924",
+    "legitimate_count": 9001,
+    "suspicious_count": 81,
+    "fraud_ratio": 0.0089
+  },
+  "features": {
+    "total": 3923,
+    "numeric": 3915,
+    "categorical": 8,
+    "surviving_80pct_na_drop": 2508
+  },
+  "missing_values": {
+    "complete": 79,
+    "low_missing": 1956,
+    "mid_missing": 473,
+    "high_missing": 1415
+  },
+  "golden_features": {
+    "available": [
+      "F115",
+      "F321",
+      "F527",
+      "F531",
+      "F670",
+      "F1692",
+      "F2082",
+      "F2122",
+      "F2582",
+      "F2678",
+      "F2737",
+      "F2956",
+      "F3043",
+      "F3836",
+      "F3887",
+      "F3889",
+      "F3891",
+      "F3894"
+    ],
+    "stats": {
+      "F115": {
+        "type": "numeric",
+        "missing_pct": 3.9,
+        "mean": 0.5917,
+        "std": 0.2175,
+        "min": 0.0,
+        "max": 1.0
+      },
+      "F321": {
+        "type": "numeric",
+        "missing_pct": 0.9,
+        "mean": 1.1523,
+        "std": 0.3977,
+        "min": 0.0,
+        "max": 10.6
+      },
+      "F527": {
+        "type": "numeric",
+        "missing_pct": 8.7,
+        "mean": 1.0004,
+        "std": 0.7528,
+        "min": 0.0,
+        "max": 48.42
+      },
+      "F531": {
+        "type": "numeric",
+        "missing_pct": 7.1,
+        "mean": 1.4388,
+        "std": 0.902,
+        "min": 0.0,
+        "max": 20.96
+      },
+      "F670": {
+        "type": "numeric",
+        "missing_pct": 0.2,
+        "mean": 0.0916,
+        "std": 0.2884,
+        "min": 0.0,
+        "max": 1.0
+      },
+      "F1692": {
+        "type": "numeric",
+        "missing_pct": 0.1,
+        "mean": 0.2597,
+        "std": 0.7803,
+        "min": 0.0,
+        "max": 14.0
+      },
+      "F2082": {
+        "type": "numeric",
+        "missing_pct": 0.1,
+        "mean": 0.0207,
+        "std": 0.081,
+        "min": 0.0,
+        "max": 1.0
+      },
+      "F2122": {
+        "type": "numeric",
+        "missing_pct": 0.0,
+        "mean": 0.0453,
+        "std": 0.132,
+        "min": 0.0,
+        "max": 1.0
+      },
+      "F2582": {
+        "type": "numeric",
+        "missing_pct": 37.5,
+        "mean": 0.0765,
+        "std": 0.5189,
+        "min": -0.88,
+        "max": 18.89
+      },
+      "F2678": {
+        "type": "numeric",
+        "missing_pct": 28.3,
+        "mean": 348.748,
+        "std": 20859.2701,
+        "min": -0.91,
+        "max": 1626943.59
+      },
+      "F2737": {
+        "type": "numeric",
+        "missing_pct": 1.2,
+        "mean": 0.3003,
+        "std": 20.5302,
+        "min": -0.94,
+        "max": 1707.6
+      },
+      "F2956": {
+        "type": "numeric",
+        "missing_pct": 11.3,
+        "mean": 132.7221,
+        "std": 359.4857,
+        "min": 0.0,
+        "max": 11548.0
+      },
+      "F3043": {
+        "type": "numeric",
+        "missing_pct": 64.1,
+        "mean": 232.0126,
+        "std": 709.6926,
+        "min": 0.0,
+        "max": 21819.0
+      },
+      "F3836": {
+        "type": "numeric",
+        "missing_pct": 0.0,
+        "mean": -48491501.8825,
+        "std": 585828858.5555,
+        "min": -20282842662.0,
+        "max": 16155853640.0
+      },
+      "F3887": {
+        "type": "numeric",
+        "missing_pct": 0.0,
+        "mean": 103.817,
+        "std": 93.5183,
+        "min": 0.0,
+        "max": 1510.0
+      },
+      "F3889": {
+        "type": "categorical",
+        "missing_pct": 0.0,
+        "unique": 7,
+        "top_values": {
+          "G365D": 7544,
+          "L365D": 397,
+          "L7D": 386
+        }
+      },
+      "F3891": {
+        "type": "categorical",
+        "missing_pct": 0.0,
+        "unique": 7,
+        "top_values": {
+          "selfemployed": 3951,
+          "salaried": 1909,
+          "student": 1185
+        }
+      },
+      "F3894": {
+        "type": "numeric",
+        "missing_pct": 0.0,
+        "mean": 34.3147,
+        "std": 17.3193,
+        "min": -2.0,
+        "max": 94.0
+      }
+    }
+  },
+  "top_discriminating_features": [
+    {
+      "feature": "F3912",
+      "correlation": 0.9691
+    },
+    {
+      "feature": "F2408",
+      "correlation": 0.1571
+    },
+    {
+      "feature": "F2409",
+      "correlation": 0.1571
+    },
+    {
+      "feature": "F515",
+      "correlation": 0.137
+    },
+    {
+      "feature": "F518",
+      "correlation": 0.1269
+    },
+    {
+      "feature": "F3502",
+      "correlation": 0.1247
+    },
+    {
+      "feature": "F3504",
+      "correlation": 0.1247
+    },
+    {
+      "feature": "F2578",
+      "correlation": 0.119
+    },
+    {
+      "feature": "F81",
+      "correlation": 0.1169
+    },
+    {
+      "feature": "F82",
+      "correlation": 0.1169
+    },
+    {
+      "feature": "F83",
+      "correlation": 0.1164
+    },
+    {
+      "feature": "F84",
+      "correlation": 0.1164
+    },
+    {
+      "feature": "F255",
+      "correlation": 0.1131
+    },
+    {
+      "feature": "F2285",
+      "correlation": 0.1126
+    },
+    {
+      "feature": "F285",
+      "correlation": 0.1117
+    },
+    {
+      "feature": "F283",
+      "correlation": 0.1117
+    },
+    {
+      "feature": "F2779",
+      "correlation": 0.1098
+    },
+    {
+      "feature": "F253",
+      "correlation": 0.1094
+    },
+    {
+      "feature": "F287",
+      "correlation": 0.1059
+    },
+    {
+      "feature": "F286",
+      "correlation": 0.1058
+    },
+    {
+      "feature": "F267",
+      "correlation": 0.1053
+    },
+    {
+      "feature": "F78",
+      "correlation": 0.0985
+    },
+    {
+      "feature": "F77",
+      "correlation": 0.0985
+    },
+    {
+      "feature": "F2502",
+      "correlation": 0.0981
+    },
+    {
+      "feature": "F2503",
+      "correlation": 0.0979
+    },
+    {
+      "feature": "F2686",
+      "correlation": 0.0979
+    },
+    {
+      "feature": "F3908",
+      "correlation": 0.097
+    },
+    {
+      "feature": "F258",
+      "correlation": 0.0957
+    },
+    {
+      "feature": "F388",
+      "correlation": 0.0949
+    },
+    {
+      "feature": "F389",
+      "correlation": 0.0949
+    }
+  ]
+}

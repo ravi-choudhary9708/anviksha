@@ -1,62 +1,88 @@
 {
   "feature_names": [
-    "txn_count_1h",
-    "txn_count_24h",
-    "amount_received_1h",
-    "amount_sent_1h",
-    "avg_time_between_txns",
-    "is_off_hours",
-    "is_round_amount",
-    "is_near_threshold",
-    "immediate_passthrough",
-    "cross_channel_mixing",
-    "account_age_days",
-    "is_new_account",
-    "no_prior_history",
-    "previously_flagged",
-    "unique_senders_24h",
-    "unique_receivers_24h",
-    "passthrough_ratio",
-    "suspect_registry_match",
-    "linked_to_flagged"
+    "F115",
+    "F321",
+    "F527",
+    "F531",
+    "F670",
+    "F1692",
+    "F2082",
+    "F2122",
+    "F2582",
+    "F2678",
+    "F2737",
+    "F2956",
+    "F3043",
+    "F3836",
+    "F3887",
+    "F3889",
+    "F3891",
+    "F3894"
   ],
-  "feature_count": 19,
+  "feature_count": 18,
+  "mappings": {
+    "F3889": {
+      "G365D": 0,
+      "L14D": 1,
+      "L180D": 2,
+      "L31D": 3,
+      "L365D": 4,
+      "L7D": 5,
+      "L90D": 6
+    },
+    "F3891": {
+      "agriculture": 0,
+      "housewife": 1,
+      "others": 2,
+      "retired": 3,
+      "salaried": 4,
+      "selfemployed": 5,
+      "student": 6
+    }
+  },
   "feature_importance": {
-    "txn_count_1h": 0.03337768092751503,
-    "txn_count_24h": 0.4036024808883667,
-    "amount_received_1h": 0.0030606051441282034,
-    "amount_sent_1h": 0.004810163285583258,
-    "avg_time_between_txns": 0.00042940545245073736,
-    "is_off_hours": 0.0,
-    "is_round_amount": 0.0,
-    "is_near_threshold": 0.0,
-    "immediate_passthrough": 0.0,
-    "cross_channel_mixing": 0.0,
-    "account_age_days": 0.00024653199943713844,
-    "is_new_account": 0.0,
-    "no_prior_history": 0.0,
-    "previously_flagged": 0.0,
-    "unique_senders_24h": 0.5544731020927429,
-    "unique_receivers_24h": 0.0,
-    "passthrough_ratio": 0.0,
-    "suspect_registry_match": 0.0,
-    "linked_to_flagged": 0.0
+    "F115": 0.054453,
+    "F321": 0.038934,
+    "F527": 0.026589,
+    "F531": 0.047916,
+    "F670": 0.054267,
+    "F1692": 0.088082,
+    "F2082": 0.179866,
+    "F2122": 0.083324,
+    "F2582": 0.043664,
+    "F2678": 0.037572,
+    "F2737": 0.055926,
+    "F2956": 0.060039,
+    "F3043": 0.043974,
+    "F3836": 0.036726,
+    "F3887": 0.028452,
+    "F3889": 0.040128,
+    "F3891": 0.037934,
+    "F3894": 0.042157
   },
   "thresholds": {
-    "high_risk": 0.75,
-    "medium_risk": 0.45,
-    "anomaly": -0.1
+    "high_risk": 0.8,
+    "medium_risk": 0.48,
+    "anomaly": -0.05
   },
-  "model_info": {
-    "xgboost": {
-      "n_estimators": 200,
-      "max_depth": 6,
-      "training_samples": 20000,
-      "fraud_ratio": 0.08
-    },
-    "isolation_forest": {
-      "n_estimators": 150,
-      "contamination": 0.08
-    }
-  }
+  "top_50_features": [
+    "F115",
+    "F321",
+    "F527",
+    "F531",
+    "F670",
+    "F1692",
+    "F2082",
+    "F2122",
+    "F2582",
+    "F2678",
+    "F2737",
+    "F2956",
+    "F3043",
+    "F3836",
+    "F3887",
+    "F3889",
+    "F3891",
+    "F3894"
+  ]
 }
