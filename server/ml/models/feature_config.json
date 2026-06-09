@@ -1,62 +1,68 @@
 {
   "feature_names": [
-    "txn_count_1h",
-    "txn_count_24h",
-    "amount_received_1h",
-    "amount_sent_1h",
-    "avg_time_between_txns",
-    "is_off_hours",
-    "is_round_amount",
-    "is_near_threshold",
-    "immediate_passthrough",
-    "cross_channel_mixing",
-    "account_age_days",
-    "is_new_account",
-    "no_prior_history",
-    "previously_flagged",
-    "unique_senders_24h",
-    "unique_receivers_24h",
-    "passthrough_ratio",
-    "suspect_registry_match",
-    "linked_to_flagged"
+    "F115",
+    "F321",
+    "F527",
+    "F531",
+    "F670",
+    "F1692",
+    "F2082",
+    "F2122",
+    "F2582",
+    "F2678",
+    "F2737",
+    "F2956",
+    "F3043",
+    "F3836",
+    "F3887",
+    "F3889",
+    "F3891",
+    "F3894"
   ],
-  "feature_count": 19,
+  "feature_count": 18,
+  "mappings": {
+    "F3889": {
+      "G365D": 0,
+      "L14D": 1,
+      "L180D": 2,
+      "L31D": 3,
+      "L365D": 4,
+      "L7D": 5,
+      "L90D": 6
+    },
+    "F3891": {
+      "agriculture": 0,
+      "housewife": 1,
+      "others": 2,
+      "retired": 3,
+      "salaried": 4,
+      "selfemployed": 5,
+      "student": 6
+    }
+  },
   "feature_importance": {
-    "txn_count_1h": 0.03337768092751503,
-    "txn_count_24h": 0.4036024808883667,
-    "amount_received_1h": 0.0030606051441282034,
-    "amount_sent_1h": 0.004810163285583258,
-    "avg_time_between_txns": 0.00042940545245073736,
-    "is_off_hours": 0.0,
-    "is_round_amount": 0.0,
-    "is_near_threshold": 0.0,
-    "immediate_passthrough": 0.0,
-    "cross_channel_mixing": 0.0,
-    "account_age_days": 0.00024653199943713844,
-    "is_new_account": 0.0,
-    "no_prior_history": 0.0,
-    "previously_flagged": 0.0,
-    "unique_senders_24h": 0.5544731020927429,
-    "unique_receivers_24h": 0.0,
-    "passthrough_ratio": 0.0,
-    "suspect_registry_match": 0.0,
-    "linked_to_flagged": 0.0
+    "F115": 0.05118536949157715,
+    "F321": 0.042300429195165634,
+    "F527": 0.02930423989892006,
+    "F531": 0.040297240018844604,
+    "F670": 0.02820923551917076,
+    "F1692": 0.08538886904716492,
+    "F2082": 0.26164230704307556,
+    "F2122": 0.07300298660993576,
+    "F2582": 0.04215569794178009,
+    "F2678": 0.02769514173269272,
+    "F2737": 0.05832935869693756,
+    "F2956": 0.05173736810684204,
+    "F3043": 0.05479877442121506,
+    "F3836": 0.02909640222787857,
+    "F3887": 0.02794754132628441,
+    "F3889": 0.028806498274207115,
+    "F3891": 0.03881445527076721,
+    "F3894": 0.02928799018263817
   },
   "thresholds": {
     "high_risk": 0.75,
     "medium_risk": 0.45,
-    "anomaly": -0.1
-  },
-  "model_info": {
-    "xgboost": {
-      "n_estimators": 200,
-      "max_depth": 6,
-      "training_samples": 20000,
-      "fraud_ratio": 0.08
-    },
-    "isolation_forest": {
-      "n_estimators": 150,
-      "contamination": 0.08
-    }
+    "anomaly": -0.05
   }
 }

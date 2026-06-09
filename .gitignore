@@ -6,3 +6,5 @@ __pycache__/
 *.pyc
 client/dist/
 client/node_modules/
+dataset/
+DataSet/

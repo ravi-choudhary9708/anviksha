@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from 'react';
-import * as d3 from 'd3';
+import { useEffect, useRef, useState, useMemo } from 'react';
+import ForceGraph2D from 'react-force-graph-2d';
+import ForceGraph3D from 'react-force-graph-3d';
 import { useApi } from '../hooks/useAnviksha.js';
 import { Spinner, StatusPill, ScoreBar } from '../components/ui.jsx';
 
@@ -46,168 +47,155 @@ function NodeDetail({ node, onClose }) {
 }
 
 export default function NetworkGraph({ graphData, loading }) {
-  const svgRef = useRef(null);
   const [selected, setSelected] = useState(null);
+  const [is3D, setIs3D] = useState(true);
+  const containerRef = useRef();
+  const fgRef = useRef();
+  const [dimensions, setDimensions] = useState({ width: 800, height: 560 });
 
+  // Apply custom forces to prevent clustering
   useEffect(() => {
-    if (!graphData || !svgRef.current) return;
-    const { nodes, links } = graphData;
-    if (!nodes?.length) return;
+    // Wrap in timeout to ensure engine is initialized
+    const timer = setTimeout(() => {
+      if (fgRef.current && typeof fgRef.current.d3Force === 'function') {
+        try {
+          const charge = fgRef.current.d3Force('charge');
+          if (charge) charge.strength(-250);
+          
+          const link = fgRef.current.d3Force('link');
+          if (link) link.distance(80);
+          
+          if (typeof fgRef.current.d3ReheatSimulation === 'function') {
+            fgRef.current.d3ReheatSimulation();
+          }
+        } catch (e) {
+          console.error('Error applying d3 forces:', e);
+        }
+      }
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [is3D, graphData]);
 
-    const container = svgRef.current.parentElement;
-    const W = container.clientWidth || 800;
-    const H = container.clientHeight || 540;
+  // Handle container resize dynamically
+  useEffect(() => {
+    if (!containerRef.current) return;
+    const updateDimensions = () => {
+      setDimensions({
+        width: containerRef.current.clientWidth,
+        height: containerRef.current.clientHeight
+      });
+    };
+    updateDimensions();
+    window.addEventListener('resize', updateDimensions);
+    return () => window.removeEventListener('resize', updateDimensions);
+  }, [containerRef]);
 
-    // Clear previous render
-    d3.select(svgRef.current).selectAll('*').remove();
-
-    const svg = d3.select(svgRef.current)
-      .attr('width', W)
-      .attr('height', H);
-
-    // Zoom + pan
-    const g = svg.append('g');
-    svg.call(d3.zoom()
-      .scaleExtent([0.3, 4])
-      .on('zoom', e => g.attr('transform', e.transform))
-    );
-
-    // Arrowhead marker
-    svg.append('defs').append('marker')
-      .attr('id', 'arrow')
-      .attr('viewBox', '0 -4 8 8')
-      .attr('refX', 18)
-      .attr('refY', 0)
-      .attr('markerWidth', 6)
-      .attr('markerHeight', 6)
-      .attr('orient', 'auto')
-      .append('path')
-      .attr('d', 'M0,-4L8,0L0,4')
-      .attr('fill', 'rgba(255,255,255,0.2)');
-
-    // Force simulation
-    const simulation = d3.forceSimulation(nodes)
-      .force('link', d3.forceLink(links).id(d => d.id).distance(100).strength(0.5))
-      .force('charge', d3.forceManyBody().strength(-300))
-      .force('center', d3.forceCenter(W / 2, H / 2))
-      .force('collision', d3.forceCollide(28));
-
-    // Links
-    const link = g.append('g').selectAll('line')
-      .data(links).join('line')
-      .attr('stroke', 'rgba(255,255,255,0.1)')
-      .attr('stroke-width', d => Math.min(Math.log(d.value / 10000 + 1) + 1, 5))
-      .attr('marker-end', 'url(#arrow)');
-
-    // Node groups
-    const nodeG = g.append('g').selectAll('g')
-      .data(nodes).join('g')
-      .style('cursor', 'pointer')
-      .call(d3.drag()
-        .on('start', (e, d) => { if (!e.active) simulation.alphaTarget(0.3).restart(); d.fx = d.x; d.fy = d.y; })
-        .on('drag', (e, d) => { d.fx = e.x; d.fy = e.y; })
-        .on('end', (e, d) => { if (!e.active) simulation.alphaTarget(0); d.fx = null; d.fy = null; })
-      )
-      .on('click', (e, d) => { e.stopPropagation(); setSelected(d); });
-
-    // Node color based on risk/status
-    function nodeColor(d) {
-      if (d.status === 'frozen') return '#64748b';
-      if (d.riskScore >= 71 || d.isMule) return '#ff3366';
-      if (d.riskScore >= 41) return '#ffaa00';
-      if (d.riskScore >= 21) return '#facc15';
-      return '#00e676';
-    }
-
-    // Node size based on volume
-    function nodeRadius(d) {
-      const vol = (d.totalIn || 0) + (d.totalOut || 0);
-      return Math.min(Math.max(10, Math.log(vol / 10000 + 1) * 5 + 8), 28);
-    }
-
-    // Outer glow ring for high-risk
-    nodeG.filter(d => d.riskScore >= 71 || d.isMule)
-      .append('circle')
-      .attr('r', d => nodeRadius(d) + 6)
-      .attr('fill', 'none')
-      .attr('stroke', '#ff3366')
-      .attr('stroke-width', 1.5)
-      .attr('opacity', 0.4)
-      .attr('stroke-dasharray', '4 2');
-
-    nodeG.append('circle')
-      .attr('r', nodeRadius)
-      .attr('fill', d => nodeColor(d) + '22')
-      .attr('stroke', nodeColor)
-      .attr('stroke-width', 2);
-
-    // Labels
-    nodeG.append('text')
-      .text(d => d.name.split(' ')[0])
-      .attr('text-anchor', 'middle')
-      .attr('dy', d => nodeRadius(d) + 14)
-      .attr('font-size', '10px')
-      .attr('fill', 'rgba(255,255,255,0.6)')
-      .attr('font-family', 'Inter, sans-serif');
-
-    // Risk score inside node
-    nodeG.filter(d => d.riskScore >= 10)
-      .append('text')
-      .text(d => Math.round(d.riskScore))
-      .attr('text-anchor', 'middle')
-      .attr('dy', '0.35em')
-      .attr('font-size', '9px')
-      .attr('font-weight', '700')
-      .attr('fill', d => nodeColor(d))
-      .attr('font-family', 'JetBrains Mono, monospace');
-
-    // Tick
-    simulation.on('tick', () => {
-      link
-        .attr('x1', d => d.source.x).attr('y1', d => d.source.y)
-        .attr('x2', d => d.target.x).attr('y2', d => d.target.y);
-      nodeG.attr('transform', d => `translate(${d.x},${d.y})`);
-    });
-
-    svg.on('click', () => setSelected(null));
-
-    return () => simulation.stop();
+  // Clone objects to prevent ForceGraph from mutating the original react state
+  const gData = useMemo(() => {
+    if (!graphData || !graphData.nodes?.length) return { nodes: [], links: [] };
+    return {
+      nodes: graphData.nodes.map(n => ({ ...n })),
+      links: graphData.links.map(l => ({ 
+        ...l, 
+        source: typeof l.source === 'object' ? l.source.id : l.source,
+        target: typeof l.target === 'object' ? l.target.id : l.target
+      }))
+    };
   }, [graphData]);
 
   if (loading) return (
     <div style={{ display: 'flex', justifyContent: 'center', padding: 80 }}><Spinner size={32} /></div>
   );
 
+  function nodeColor(d) {
+    if (d.status === 'frozen') return '#64748b';
+    if (d.riskScore >= 71 || d.isMule) return '#ff3366';
+    if (d.riskScore >= 41) return '#ffaa00';
+    if (d.riskScore >= 21) return '#facc15';
+    return '#00e676';
+  }
+
+  function nodeRadius(d) {
+    const vol = (d.totalIn || 0) + (d.totalOut || 0);
+    return Math.min(Math.max(4, Math.log(vol / 10000 + 1) * 2 + 3), 12);
+  }
+
   return (
     <div>
-      {/* Legend */}
+      {/* Controls & Legend */}
       <div className="card" style={{ padding: '12px 20px', marginBottom: 16 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 24, flexWrap: 'wrap', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <button 
+              onClick={() => setIs3D(false)} 
+              style={{ background: !is3D ? 'var(--primary)' : 'var(--bg-elevated)', color: 'white', border: 'none', padding: '4px 12px', borderRadius: 4, cursor: 'pointer' }}
+            >2D</button>
+            <button 
+              onClick={() => setIs3D(true)} 
+              style={{ background: is3D ? 'var(--primary)' : 'var(--bg-elevated)', color: 'white', border: 'none', padding: '4px 12px', borderRadius: 4, cursor: 'pointer' }}
+            >3D Mode 🚀</button>
+          </div>
+          
           <span style={{ fontWeight: 600, color: 'var(--text-secondary)' }}>Legend:</span>
           {[
-            ['🟢', 'Low Risk (0-20)'],
-            ['🟡', 'Medium (21-40)'],
-            ['🟠', 'High (41-70)'],
-            ['🔴', 'Critical (71+)'],
+            ['🟢', 'Low Risk'],
+            ['🟡', 'Medium'],
+            ['🟠', 'High'],
+            ['🔴', 'Critical'],
             ['⚫', 'Frozen'],
           ].map(([icon, label]) => (
             <span key={label}>{icon} {label}</span>
           ))}
-          <span style={{ marginLeft: 'auto' }}>Node size = transaction volume · Drag to rearrange · Scroll to zoom</span>
+          <span style={{ marginLeft: 'auto' }}>Node size = volume · Particles = transaction flow</span>
         </div>
       </div>
 
       {/* Graph */}
       <div className="card" style={{ padding: 0, position: 'relative', overflow: 'hidden' }}>
-        <div style={{ height: 560, background: 'radial-gradient(ellipse at center, rgba(0,212,255,0.03) 0%, transparent 70%)' }}>
-          <svg ref={svgRef} style={{ width: '100%', height: '100%' }} />
-          {selected && <NodeDetail node={selected} onClose={() => setSelected(null)} />}
-          {(!graphData?.nodes?.length) && (
+        <div ref={containerRef} style={{ height: 560, background: '#0b0f19' }}>
+          
+          {(!gData?.nodes?.length) ? (
             <div className="empty-state" style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
               <div className="empty-state-icon">🕸️</div>
               <div className="empty-state-text">Graph will populate as transactions flow in…</div>
             </div>
+          ) : (
+            is3D ? (
+              <ForceGraph3D
+                ref={fgRef}
+                width={dimensions.width || 800}
+                height={dimensions.height || 560}
+                graphData={gData}
+                nodeLabel="name"
+                nodeColor={nodeColor}
+                nodeVal={d => nodeRadius(d)}
+                linkDirectionalParticles={d => Math.min(Math.max(2, Math.floor((d.value || 0) / 10000)), 8)}
+                linkDirectionalParticleWidth={1.5}
+                linkDirectionalParticleSpeed={0.005}
+                linkColor={() => 'rgba(255,255,255,0.1)'}
+                onNodeClick={node => setSelected(node)}
+                backgroundColor="#0b0f19"
+              />
+            ) : (
+              <ForceGraph2D
+                ref={fgRef}
+                width={dimensions.width || 800}
+                height={dimensions.height || 560}
+                graphData={gData}
+                nodeLabel="name"
+                nodeColor={nodeColor}
+                nodeVal={d => nodeRadius(d)}
+                linkDirectionalParticles={d => Math.min(Math.max(2, Math.floor((d.value || 0) / 10000)), 8)}
+                linkDirectionalParticleWidth={1.5}
+                linkDirectionalParticleSpeed={0.005}
+                linkColor={() => 'rgba(255,255,255,0.1)'}
+                onNodeClick={node => setSelected(node)}
+                backgroundColor="#0b0f19"
+              />
+            )
           )}
+          
+          {selected && <NodeDetail node={selected} onClose={() => setSelected(null)} />}
         </div>
       </div>
     </div>

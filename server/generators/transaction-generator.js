@@ -1,19 +1,38 @@
 // ============================================================
-// Anviksha — Mock Transaction Generator
+// Anviksha — Mock Transaction Generator (Dataset Driven)
 // ============================================================
-// Generates realistic Indian banking transactions in real-time.
-// Produces both normal and fraudulent (mule) patterns.
-// Runs on an interval, broadcasting each new txn via callback.
+// Generates realistic Indian banking transactions in real-time
+// but uses actual abstract features from the provided DataSet.csv
+// to feed the ML model.
 // ============================================================
 
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { v4 as uuidv4 } from 'uuid';
 import { stmts } from '../db/index.js';
 
-// Indian bank transaction types with realistic distributions
-const TXN_TYPES = ['UPI', 'NEFT', 'IMPS', 'RTGS', 'ATM'];
-const TXN_TYPE_WEIGHTS = [0.55, 0.15, 0.15, 0.05, 0.10]; // UPI dominates in India
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-// Realistic transaction descriptions
+// Load dataset features
+const datasetPath = path.join(__dirname, 'dataset_features.json');
+let dataset = [];
+try {
+  dataset = JSON.parse(fs.readFileSync(datasetPath, 'utf8'));
+  console.log(`[GENERATOR] Loaded ${dataset.length} records from dataset_features.json`);
+} catch (error) {
+  console.error('[GENERATOR] Could not load dataset_features.json. Did you run train_model.py?');
+}
+
+// Split into fraud and normal pools to ensure we can simulate both
+const fraudRecords = dataset.filter(r => r.F3924 === 1);
+const normalRecords = dataset.filter(r => r.F3924 === 0);
+
+// For UI realism
+const TXN_TYPES = ['UPI', 'NEFT', 'IMPS', 'RTGS', 'ATM'];
+const TXN_TYPE_WEIGHTS = [0.55, 0.15, 0.15, 0.05, 0.10];
+
 const NORMAL_DESCRIPTIONS = [
   'Grocery payment', 'Electricity bill', 'Mobile recharge', 'Rent payment',
   'EMI payment', 'Salary credit', 'Family transfer', 'Medicine purchase',
@@ -30,9 +49,6 @@ const FRAUD_DESCRIPTIONS = [
 let intervalHandle = null;
 let txnCounter = 0;
 
-/**
- * Pick a weighted random item from an array.
- */
 function weightedRandom(items, weights) {
   const r = Math.random();
   let sum = 0;
@@ -43,29 +59,53 @@ function weightedRandom(items, weights) {
   return items[items.length - 1];
 }
 
-/**
- * Generate a normal (legitimate) transaction.
- */
-function generateNormalTransaction(accounts) {
-  const normalAccounts = accounts.filter(a => !a.is_mule);
-  if (normalAccounts.length < 2) return null;
+function generateTransaction(accounts, isFraud) {
+  if (accounts.length < 2) return null;
   
-  // Pick random sender and receiver (different accounts)
-  const sender = normalAccounts[Math.floor(Math.random() * normalAccounts.length)];
+  const records = isFraud ? fraudRecords : normalRecords;
+  if (records.length === 0) return null;
+  
+  // Pick random row from dataset
+  const record = records[Math.floor(Math.random() * records.length)];
+  
+  // Create fake UI metadata
+  const sender = accounts[Math.floor(Math.random() * accounts.length)];
   let receiver;
   do {
-    receiver = normalAccounts[Math.floor(Math.random() * normalAccounts.length)];
+    receiver = accounts[Math.floor(Math.random() * accounts.length)];
   } while (receiver.id === sender.id);
   
-  // Normal amounts: mostly small to medium (₹100 — ₹50,000)
-  const amount = Math.round(
-    Math.random() < 0.7
-      ? (Math.random() * 5000 + 100)       // 70%: small payments ₹100-₹5,000
-      : (Math.random() * 45000 + 5000)     // 30%: medium ₹5,000-₹50,000
-  );
-  
+  const amount = isFraud 
+    ? Math.round((Math.random() * 150000 + 20000) / 1000) * 1000
+    : Math.round(Math.random() * 50000 + 100);
+    
   const type = weightedRandom(TXN_TYPES, TXN_TYPE_WEIGHTS);
-  
+  const description = isFraud 
+    ? FRAUD_DESCRIPTIONS[Math.floor(Math.random() * FRAUD_DESCRIPTIONS.length)]
+    : NORMAL_DESCRIPTIONS[Math.floor(Math.random() * NORMAL_DESCRIPTIONS.length)];
+
+  // Convert raw dataset string/missing features to pure floats/strings for the scoring engine
+  const dataset_features = {
+    F115: isNaN(Number(record.F115)) ? 0 : Number(record.F115),
+    F321: isNaN(Number(record.F321)) ? 0 : Number(record.F321),
+    F527: isNaN(Number(record.F527)) ? 0 : Number(record.F527),
+    F531: isNaN(Number(record.F531)) ? 0 : Number(record.F531),
+    F670: isNaN(Number(record.F670)) ? 0 : Number(record.F670),
+    F1692: isNaN(Number(record.F1692)) ? 0 : Number(record.F1692),
+    F2082: isNaN(Number(record.F2082)) ? 0 : Number(record.F2082),
+    F2122: isNaN(Number(record.F2122)) ? 0 : Number(record.F2122),
+    F2582: isNaN(Number(record.F2582)) ? 0 : Number(record.F2582),
+    F2678: isNaN(Number(record.F2678)) ? 0 : Number(record.F2678),
+    F2737: isNaN(Number(record.F2737)) ? 0 : Number(record.F2737),
+    F2956: isNaN(Number(record.F2956)) ? 0 : Number(record.F2956),
+    F3043: isNaN(Number(record.F3043)) ? 0 : Number(record.F3043),
+    F3836: isNaN(Number(record.F3836)) ? 0 : Number(record.F3836),
+    F3887: isNaN(Number(record.F3887)) ? 0 : Number(record.F3887),
+    F3889: String(record.F3889), // string
+    F3891: String(record.F3891), // string
+    F3894: isNaN(Number(record.F3894)) ? 0 : Number(record.F3894),
+  };
+
   return {
     id: uuidv4(),
     txn_ref: `TXN${Date.now()}${(++txnCounter).toString().padStart(4, '0')}`,
@@ -74,84 +114,22 @@ function generateNormalTransaction(accounts) {
     sender_account_id: sender.id,
     receiver_account_id: receiver.id,
     channel: 'digital',
-    description: NORMAL_DESCRIPTIONS[Math.floor(Math.random() * NORMAL_DESCRIPTIONS.length)],
+    description,
     timestamp: new Date().toISOString(),
     risk_score: 0,
     is_flagged: 0,
     features_json: null,
     ml_scores_json: null,
+    dataset_features // Will be picked up by scoring-engine
   };
 }
 
-/**
- * Generate a fraudulent/mule transaction pattern.
- * Simulates various mule behaviors:
- *   1. Fan-in: multiple normal accounts → mule (money aggregation)
- *   2. Fan-out: mule → multiple accounts (layering)
- *   3. Pass-through: receive then immediately send
- *   4. Off-hours large round amounts
- */
-function generateFraudTransaction(accounts) {
-  const muleAccounts = accounts.filter(a => a.is_mule);
-  const normalAccounts = accounts.filter(a => !a.is_mule);
-  
-  if (muleAccounts.length === 0 || normalAccounts.length === 0) return null;
-  
-  const mule = muleAccounts[Math.floor(Math.random() * muleAccounts.length)];
-  const pattern = Math.random();
-  
-  let sender, receiver, amount, type;
-  
-  if (pattern < 0.5) {
-    // FAN-IN: Normal account sends TO mule (victim's money being collected)
-    sender = normalAccounts[Math.floor(Math.random() * normalAccounts.length)];
-    receiver = mule;
-    // Large amounts, often round numbers
-    amount = Math.round((Math.random() * 150000 + 20000) / 1000) * 1000;
-  } else if (pattern < 0.8) {
-    // FAN-OUT: Mule sends TO normal account (layering/forwarding)
-    sender = mule;
-    receiver = normalAccounts[Math.floor(Math.random() * normalAccounts.length)];
-    // Slightly less than received (mule keeps a small cut)
-    amount = Math.round((Math.random() * 120000 + 15000) / 1000) * 1000;
-  } else {
-    // MULE-TO-MULE: Layering between mule accounts
-    sender = mule;
-    receiver = muleAccounts[Math.floor(Math.random() * muleAccounts.length)];
-    if (receiver.id === sender.id && muleAccounts.length > 1) {
-      receiver = muleAccounts.find(a => a.id !== sender.id) || receiver;
-    }
-    amount = Math.round((Math.random() * 200000 + 50000) / 1000) * 1000;
-  }
-  
-  // Fraud txns often use different channels than normal
-  type = Math.random() < 0.4 ? 'NEFT' : (Math.random() < 0.6 ? 'IMPS' : 'UPI');
-  
-  return {
-    id: uuidv4(),
-    txn_ref: `TXN${Date.now()}${(++txnCounter).toString().padStart(4, '0')}`,
-    type,
-    amount,
-    sender_account_id: sender.id,
-    receiver_account_id: receiver.id,
-    channel: 'digital',
-    description: FRAUD_DESCRIPTIONS[Math.floor(Math.random() * FRAUD_DESCRIPTIONS.length)],
-    timestamp: new Date().toISOString(),
-    risk_score: 0,
-    is_flagged: 0,
-    features_json: null,
-    ml_scores_json: null,
-  };
-}
-
-/**
- * Start the transaction generator.
- * 
- * @param {Function} onTransaction - Callback called with each new transaction
- * @param {number} intervalMs - Time between transactions in milliseconds
- */
 export function startTransactionGenerator(onTransaction, intervalMs = 2000) {
   console.log(`[GENERATOR] Starting transaction generator (interval: ${intervalMs}ms)`);
+  
+  if (dataset.length === 0) {
+    console.warn('[GENERATOR] Dataset empty. Falling back to simple random generation.');
+  }
   
   const accounts = stmts.getAllAccounts.all();
   if (accounts.length < 2) {
@@ -159,40 +137,19 @@ export function startTransactionGenerator(onTransaction, intervalMs = 2000) {
     return;
   }
   
-  // Generate a mix: ~85% normal, ~15% fraud
   intervalHandle = setInterval(() => {
-    const isFraud = Math.random() < 0.15;
-    const transaction = isFraud 
-      ? generateFraudTransaction(accounts)
-      : generateNormalTransaction(accounts);
+    // 10% chance of picking a fraud record (target F3924=1)
+    const isFraud = Math.random() < 0.10;
+    const transaction = generateTransaction(accounts, isFraud);
     
     if (transaction) {
       onTransaction(transaction);
     }
   }, intervalMs);
   
-  // Also generate occasional burst patterns (mule behavior)
-  // Every 30 seconds, generate a rapid burst of 3-5 transactions
-  setInterval(() => {
-    if (Math.random() < 0.3) { // 30% chance of burst
-      const burstCount = Math.floor(Math.random() * 3) + 3;
-      console.log(`[GENERATOR] 💥 Burst: ${burstCount} rapid fraud transactions`);
-      
-      for (let i = 0; i < burstCount; i++) {
-        setTimeout(() => {
-          const txn = generateFraudTransaction(accounts);
-          if (txn) onTransaction(txn);
-        }, i * 500); // 500ms between burst transactions
-      }
-    }
-  }, 30000);
-  
   return intervalHandle;
 }
 
-/**
- * Stop the transaction generator.
- */
 export function stopTransactionGenerator() {
   if (intervalHandle) {
     clearInterval(intervalHandle);

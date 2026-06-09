@@ -21,15 +21,15 @@ The system is structured as a monorepo containing a Node.js backend and a Vite+R
 *   **Framework:** Express.js + WebSockets (`ws` package) for real-time dashboard updates.
 *   **Database:** SQLite (`better-sqlite3` for zero-configuration, synchronous, high-performance database access).
 *   **ML Engine (`/server/ml`):**
-    *   **Feature Extractor:** Extracts **19 MuleHunter-inspired behavioral features** (velocity, behavioral, account, graph, and regulatory characteristics).
+    *   **Feature Extractor:** Extracts **18 abstract features** from the dataset (`DataSet.csv`).
     *   **Scoring Engine:** Runs ONNX inference using `onnxruntime-node` for two models:
         1.  **XGBoost Classifier:** Fraud/mule probability classifier.
         2.  **Isolation Forest:** Unsupervised anomaly detector (provides risk boosts for unexpected patterns).
-        *   *Fallback:* Automatically falls back to a calibrated rule-based scoring engine if ONNX models are not compiled or available.
+        *   *Fallback:* Automatically falls back to dataset simulation if ONNX models are not compiled or available.
     *   **Graph Analyzer:** Builds an in-memory transactional connection graph (detecting fan-in, fan-out, clustering coefficients, and pass-through ratios) to identify mule networks.
     *   **GenAI Explainer:** Integrates with the Gemini API to write natural-language threat explanations. If `GEMINI_API_KEY` is not present, it falls back to a rule-based template engine.
 *   **Generators (`/server/generators`):**
-    *   `transaction-generator.js`: Simulates active UPI, IMPS, NEFT, and ATM transactions with normal and fraud patterns (e.g., immediate pass-through, structuring below ₹50K, extreme fan-in).
+    *   `transaction-generator.js`: Simulates active transactions by randomly sampling from `DataSet.csv` (while wrapping them in fake UI metadata for visual consistency).
     *   `i4c-feed-generator.js`: Simulates periodic government regulatory blacklist updates.
     *   `seed-data.js`: Populates the database with default accounts, history, and connections.
 
@@ -38,8 +38,8 @@ The system is structured as a monorepo containing a Node.js backend and a Vite+R
 *   **Design System:** Glassmorphism dark-mode fintech aesthetic.
 *   **Key Views:**
     1.  **Live Feed:** Real-time transaction list streaming via WebSockets with pulse animations on high-risk flags.
-    2.  **Flagged Accounts:** List of accounts sorted by risk score. Expandable rows show details, D3 network connections, and AI explanations.
-    3.  **Network Graph:** Interactive force-directed D3.js graph visualizing account transaction connections.
+    2.  **Flagged Accounts:** List of accounts sorted by risk score. Expandable rows show details, network connections, and AI explanations.
+    3.  **Network Graph:** Interactive force-directed 3D graph visualizing account transaction connections using `react-force-graph`.
     4.  **Analytics:** Recharts diagrams of risk distributions, channels, and flagged metrics.
     5.  **Regulatory Feeds:** View of I4C/NCRP suspect registry and connection status.
 
@@ -99,7 +99,7 @@ To activate the real ML models (XGBoost + Isolation Forest) instead of the rule-
     ```bash
     python server/ml/train_model.py
     ```
-    *This script generates synthetic training data reflecting the 19 behavioral features, trains the models, and writes the following files:*
+    *This script loads `DataSet.csv`, balances the classes using XGBoost, trains the models, and writes the following files:*
     *   `server/ml/models/xgboost_fraud.onnx`
     *   `server/ml/models/isolation_forest.onnx`
     *   `server/ml/models/feature_config.json`
@@ -118,7 +118,7 @@ To activate the real ML models (XGBoost + Isolation Forest) instead of the rule-
 All core parts of the system have been successfully implemented:
 *   **Backend framework & routers:** Fully functional.
 *   **SQLite database setup:** Schema created and seeded correctly.
-*   **ML Pipeline:** Features are correctly extracted and scored (currently using fallback scoring until Python training script is run).
+*   **ML Pipeline:** 18 features from `DataSet.csv` are properly mapped and scored via ONNX.
 *   **WebSockets:** Broadcasts transaction logs, new alerts, and regulatory registry changes in real time.
-*   **GenAI Explainer:** Structured prompt setup for Gemini with a robust rule-based fallback.
-*   **React Dashboard:** Completed pages for Live Feed, Flagged Accounts, Network Graph (D3), Analytics (Recharts), and Regulatory Feeds.
+*   **GenAI Explainer:** Structured prompt setup for Gemini with generalized risk explanations.
+*   **React Dashboard:** Completed pages for Live Feed, Flagged Accounts, Network Graph (react-force-graph), Analytics (Recharts), and Regulatory Feeds.
