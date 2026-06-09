@@ -79,6 +79,16 @@ Cross-Validation ROC-AUC: 0.845 ± 0.076.
 
 ---
 
+## 🚀 Key Counter-Fraud UI Features (Enterprise UI)
+
+To ensure maximum visual impact for compliance officers and hackathon judges, Anviksha features:
+
+1. **Threat Escalation Curve:** A dynamic line chart plotting an account's risk trajectory over a 24-hour window, visually proving "Pre-Crime" detection before the 71-point action threshold is breached.
+2. **Auto-STR Generation (FIU-IND Format):** A dedicated, prominent enterprise action button to automatically generate Prevention of Money Laundering Act (PMLA) compliant Suspicious Transaction Report (STR) dossiers using Gemini AI.
+3. **Live Orchestrator Hunt:** The D3.js Network Graph dynamically tags masterminds with a glowing orange **🔥 ORCHESTRATOR** badge (requires `Fan-In >= 8` and `Risk Score >= 50`), exposing mule coordinators live on the graph.
+
+---
+
 ## 🗄️ Database Schema
 
 ![Database Schema](docs/images/database_schema.png)

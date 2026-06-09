@@ -87,10 +87,10 @@ export default function NetworkGraph({ graphData, loading }) {
 
     // Force simulation
     const simulation = d3.forceSimulation(nodes)
-      .force('link', d3.forceLink(links).id(d => d.id).distance(100).strength(0.5))
-      .force('charge', d3.forceManyBody().strength(-300))
+      .force('link', d3.forceLink(links).id(d => d.id).distance(120).strength(0.5))
+      .force('charge', d3.forceManyBody().strength(-500))
       .force('center', d3.forceCenter(W / 2, H / 2))
-      .force('collision', d3.forceCollide(28));
+      .force('collision', d3.forceCollide(35));
 
     // Links
     const link = g.append('g').selectAll('line')
@@ -130,6 +130,35 @@ export default function NetworkGraph({ graphData, loading }) {
       .attr('stroke-width', 1.5)
       .attr('opacity', 0.4)
       .attr('stroke-dasharray', '4 2');
+
+    nodeG.filter(d => d.fanIn >= 8 && d.riskScore >= 50)
+      .append('circle')
+      .attr('r', d => nodeRadius(d) + 10)
+      .attr('fill', 'none')
+      .attr('stroke', '#ffaa00')
+      .attr('stroke-width', 2)
+      .attr('opacity', 0.6);
+
+    nodeG.filter(d => d.fanIn >= 8 && d.riskScore >= 50)
+      .append('rect')
+      .attr('x', d => -40)
+      .attr('y', d => -nodeRadius(d) - 24)
+      .attr('width', 80)
+      .attr('height', 16)
+      .attr('rx', 8)
+      .attr('fill', 'rgba(255, 170, 0, 0.2)')
+      .attr('stroke', '#ffaa00')
+      .attr('stroke-width', 1);
+
+    nodeG.filter(d => d.fanIn >= 8 && d.riskScore >= 50)
+      .append('text')
+      .text('🔥 ORCHESTRATOR')
+      .attr('text-anchor', 'middle')
+      .attr('dy', d => -nodeRadius(d) - 13)
+      .attr('font-size', '8px')
+      .attr('font-weight', '800')
+      .attr('fill', '#ffaa00')
+      .attr('font-family', 'Inter, sans-serif');
 
     nodeG.append('circle')
       .attr('r', nodeRadius)

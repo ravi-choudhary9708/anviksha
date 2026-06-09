@@ -38,8 +38,8 @@ The system is structured as a monorepo containing a Node.js backend and a Vite+R
 *   **Design System:** Glassmorphism dark-mode fintech aesthetic.
 *   **Key Views:**
     1.  **Live Feed:** Real-time transaction list streaming via WebSockets with pulse animations on high-risk flags.
-    2.  **Flagged Accounts:** List of accounts sorted by risk score. Expandable rows show details, D3 network connections, and AI explanations.
-    3.  **Network Graph:** Interactive force-directed D3.js graph visualizing account transaction connections.
+    2.  **Flagged Accounts:** List of accounts sorted by risk score. Expandable rows show details, a **Threat Escalation Curve** (Recharts) proving Pre-Crime detection, and an **Auto-STR Generation** button for FIU compliance.
+    3.  **Network Graph:** Interactive force-directed D3.js graph visualizing account transaction connections. Mastermind mule accounts (`fanIn >= 8` & `riskScore >= 50`) are dynamically tagged with a glowing **🔥 ORCHESTRATOR** badge.
     4.  **Analytics:** Recharts diagrams of risk distributions, channels, and flagged metrics.
     5.  **Regulatory Feeds:** View of I4C/NCRP suspect registry and connection status.
 

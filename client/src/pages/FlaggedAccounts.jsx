@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Lock, Unlock, ChevronDown, ChevronUp, User, AlertCircle } from 'lucide-react';
+import { Lock, Unlock, ChevronDown, ChevronUp, User, AlertCircle, TrendingUp, Download } from 'lucide-react';
+import { LineChart, Line, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer, ReferenceLine, CartesianGrid } from 'recharts';
 import { useApi, apiPost } from '../hooks/useAnviksha.js';
 import { RiskBadge, ScoreBar, StatusPill, AmountDisplay, Spinner } from '../components/ui.jsx';
 
@@ -68,6 +69,29 @@ function AccountDetail({ accountId, onClose, onRefresh }) {
       </div>
 
       {}
+      {transactions?.length > 0 && (
+        <div style={{ marginBottom: 24 }}>
+          <div style={{ fontSize: '0.7rem', color: 'var(--warning)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
+            <TrendingUp size={14} /> Threat Escalation Curve (Last 24h)
+          </div>
+          <div style={{ height: 160, width: '100%', background: 'var(--bg-elevated)', padding: '10px 10px 0 0', borderRadius: 8, border: '1px solid var(--border)' }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={[...transactions].reverse().map(t => ({ time: new Date(t.timestamp).toLocaleTimeString('en-IN', {hour: '2-digit', minute:'2-digit'}), score: t.risk_score || 0 }))}>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                <XAxis dataKey="time" stroke="rgba(255,255,255,0.3)" fontSize={10} tickLine={false} axisLine={false} />
+                <YAxis stroke="rgba(255,255,255,0.3)" fontSize={10} domain={[0, 100]} ticks={[0, 41, 71, 100]} tickLine={false} axisLine={false} width={30} />
+                <RechartsTooltip 
+                  contentStyle={{ background: '#1e293b', border: '1px solid #334155', borderRadius: 6, fontSize: '0.75rem' }}
+                  itemStyle={{ color: '#00d4ff' }}
+                />
+                <ReferenceLine y={71} stroke="var(--danger)" strokeDasharray="4 4" label={{ position: 'insideBottomLeft', value: 'Action Threshold (71)', fill: 'var(--danger)', fontSize: 10, dy: 15, dx: 5 }} />
+                <Line type="monotone" dataKey="score" stroke="#00d4ff" strokeWidth={2} dot={{ r: 3, fill: '#00d4ff', strokeWidth: 0 }} activeDot={{ r: 5, fill: '#fff' }} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      )}
+
       {transactions?.length > 0 && (
         <>
           <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>Recent Transactions</div>
@@ -151,12 +175,12 @@ export default function FlaggedAccounts({ alerts }) {
                       download
                       onClick={e => e.stopPropagation()}
                       style={{
-                        fontSize: '0.68rem', padding: '3px 8px',
-                        background: 'rgba(0,212,255,0.1)', color: '#00d4ff',
-                        border: '1px solid rgba(0,212,255,0.3)', borderRadius: 4,
-                        textDecoration: 'none', whiteSpace: 'nowrap',
+                        fontSize: '0.72rem', padding: '6px 12px', fontWeight: 600,
+                        background: 'linear-gradient(90deg, #ff3366 0%, #ff6b33 100%)', color: '#fff',
+                        border: 'none', borderRadius: 4, display: 'flex', alignItems: 'center', gap: 6,
+                        textDecoration: 'none', whiteSpace: 'nowrap', boxShadow: '0 0 12px rgba(255, 51, 102, 0.4)'
                       }}
-                    >📄 STR Draft</a>
+                    ><Download size={12} /> Generate STR (FIU Format)</a>
                   </div>
                 </div>
                 {alert.ai_explanation && (
