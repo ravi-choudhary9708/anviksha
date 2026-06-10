@@ -66,7 +66,6 @@ router.get('/:id', (req, res) => {
   }
 });
 
-// POST /api/accounts/:id/freeze — Freeze an account
 router.post('/:id/freeze', (req, res) => {
   try {
     const account = stmts.getAccount.get(req.params.id);
@@ -74,7 +73,6 @@ router.post('/:id/freeze', (req, res) => {
 
     stmts.setAccountStatus.run({ status: 'frozen', id: req.params.id });
 
-    // Create alert
     stmts.insertAlert.run({
       id: uuidv4(),
       alert_type: 'analyst',
@@ -93,7 +91,6 @@ router.post('/:id/freeze', (req, res) => {
   }
 });
 
-// POST /api/accounts/:id/unfreeze — Unfreeze an account
 router.post('/:id/unfreeze', (req, res) => {
   try {
     const account = stmts.getAccount.get(req.params.id);

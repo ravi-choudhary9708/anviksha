@@ -1,9 +1,9 @@
 node_modules/
 data/
 .env
-*.onnx
 __pycache__/
 *.pyc
+*.csv
 client/dist/
 client/node_modules/
 dataset/

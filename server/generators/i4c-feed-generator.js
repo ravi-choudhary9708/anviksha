@@ -3,14 +3,12 @@
 // ============================================================
 // Simulates the Indian Cyber Crime Coordination Centre (I4C)
 // Suspect Registry and NCRP complaint feeds.
-// ============================================================
 
 import { v4 as uuidv4 } from 'uuid';
 import { stmts } from '../db/index.js';
 
 let intervalHandle = null;
 
-// Realistic I4C complaint reasons
 const COMPLAINT_REASONS = [
   'Online financial fraud - UPI phishing',
   'Investment fraud - Ponzi scheme',
@@ -24,11 +22,6 @@ const COMPLAINT_REASONS = [
   'Customer support fraud - remote access',
 ];
 
-/**
- * Generate a mock suspect registry entry.
- * Randomly targets either an existing mule account or generates
- * a new identifier to simulate real I4C registry updates.
- */
 function generateSuspectEntry(accounts) {
   const muleAccounts = accounts.filter(a => a.is_mule);
   const targetMule = Math.random() < 0.6 && muleAccounts.length > 0;
@@ -36,7 +29,6 @@ function generateSuspectEntry(accounts) {
   let identifierType, identifierValue;
   
   if (targetMule) {
-    // Target an existing mule account (simulates I4C catching up)
     const mule = muleAccounts[Math.floor(Math.random() * muleAccounts.length)];
     const typeRoll = Math.random();
     
@@ -51,7 +43,6 @@ function generateSuspectEntry(accounts) {
       identifierValue = mule.account_number;
     }
   } else {
-    // Generate a random identifier (external fraud actor)
     identifierType = ['phone', 'upi', 'account', 'device'][Math.floor(Math.random() * 4)];
     
     switch (identifierType) {
@@ -85,26 +76,17 @@ function generateSuspectEntry(accounts) {
   };
 }
 
-/**
- * Start the I4C feed simulator.
- * Generates suspect registry entries at random intervals.
- * 
- * @param {Function} onSuspectEntry - Callback for each new entry
- * @param {number} avgIntervalMs - Average time between entries
- */
 export function startI4CFeedGenerator(onSuspectEntry, avgIntervalMs = 45000) {
   console.log(`[I4C FEED] Starting regulatory feed simulator (avg interval: ${avgIntervalMs}ms)`);
   
   const accounts = stmts.getAllAccounts.all();
   
   function scheduleNext() {
-    // Random interval: 50% to 150% of average (simulates irregular real feed)
     const delay = avgIntervalMs * (0.5 + Math.random());
     
     intervalHandle = setTimeout(() => {
       const entry = generateSuspectEntry(accounts);
       
-      // Insert into database
       try {
         stmts.insertSuspect.run(entry);
         console.log(`[I4C FEED] 🔴 New suspect entry: ${entry.identifier_type}=${entry.identifier_value} (${entry.source})`);
@@ -113,19 +95,15 @@ export function startI4CFeedGenerator(onSuspectEntry, avgIntervalMs = 45000) {
           onSuspectEntry(entry);
         }
       } catch (err) {
-        // Duplicate entry — skip silently
       }
       
-      scheduleNext(); // Schedule next entry
+      scheduleNext();
     }, delay);
   }
   
   scheduleNext();
 }
 
-/**
- * Stop the I4C feed generator.
- */
 export function stopI4CFeedGenerator() {
   if (intervalHandle) {
     clearTimeout(intervalHandle);

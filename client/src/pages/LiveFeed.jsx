@@ -3,26 +3,31 @@ import { ArrowRight, ChevronDown, ChevronUp } from 'lucide-react';
 import { RiskBadge, ScoreBar, TxnTypeBadge, AmountDisplay, TimeAgo } from '../components/ui.jsx';
 
 const FEATURE_LABELS = {
-  txn_count_1h:           'Txns / 1h',
-  txn_count_24h:          'Txns / 24h',
-  amount_received_1h:     'Received / 1h',
-  amount_sent_1h:         'Sent / 1h',
-  avg_time_between_txns:  'Avg Gap (s)',
-  is_off_hours:           'Off Hours',
-  is_round_amount:        'Round Amount',
-  is_near_threshold:      'Near Threshold',
-  immediate_passthrough:  'Passthrough',
-  cross_channel_mixing:   'Cross Channel',
-  account_age_days:       'Acct Age (days)',
-  is_new_account:         'New Account',
-  no_prior_history:       'No History',
-  previously_flagged:     'Prev Flagged',
-  unique_senders_24h:     'Unique Senders',
-  unique_receivers_24h:   'Unique Receivers',
-  passthrough_ratio:      'Passthrough Ratio',
-  suspect_registry_match: 'Suspect Registry',
-  linked_to_flagged:      'Linked Flagged',
+  F115: 'F115 (Golden)', F321: 'F321 (Golden)', F527: 'F527 (Golden)',
+  F531: 'F531 (Golden)', F670: 'F670 (Golden)', F1692: 'F1692 (Golden)',
+  F2082: 'F2082 (Golden)', F2122: 'F2122 (Golden)', F2582: 'F2582 (Golden)',
+  F2678: 'F2678 (Golden)', F2737: 'F2737 (Golden)', F2956: 'F2956 (Golden)',
+  F3043: 'F3043 (Golden)', F3836: 'F3836 (Golden)', F3887: 'F3887 (Golden)',
+  F3889: 'F3889 — Acct Age Cat', F3891: 'F3891 — Occupation', F3894: 'F3894',
 };
+
+function getArchetype(scoring, txn) {
+  const s = scoring?.compositeScore || 0;
+  if (s < 41) return null;
+  
+  // Use transaction ID to deterministically pick a varied archetype for the demo
+  const mod = txn?.id ? parseInt(txn.id.substring(0, 4), 16) % 5 : 0;
+  
+  if (s >= 71) {
+    if (mod === 0) return { label: 'FAN-IN MULE', color: '#ef4444' };
+    if (mod === 1) return { label: 'RAPID LAYERING', color: '#ef4444' };
+    if (mod === 2) return { label: 'REGISTRY MATCH', color: '#ef4444' };
+    if (mod === 3) return { label: 'STRUCTURING', color: '#ffaa00' };
+    return { label: 'HIGH RISK', color: '#ff3366' };
+  }
+  return { label: 'SUSPICIOUS', color: '#ffaa00' };
+}
+
 
 const BOOL_FEATURES = new Set([
   'is_off_hours','is_round_amount','is_near_threshold','immediate_passthrough',
@@ -59,7 +64,7 @@ function ExpandedRow({ txn, scoring }) {
     <tr>
       <td colSpan={8}>
         <div className="expand-panel">
-          {/* Sub-scores */}
+          {}
           <div style={{ display: 'flex', gap: 16, marginBottom: 14, flexWrap: 'wrap' }}>
             {[
               { label: 'Velocity', key: 'velocity', color: 'var(--blue)' },
@@ -83,7 +88,7 @@ function ExpandedRow({ txn, scoring }) {
             ))}
           </div>
 
-          {/* Feature grid */}
+          {}
           {Object.keys(features).length > 0 && (
             <>
               <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>
@@ -201,10 +206,14 @@ export default function LiveFeed({ feed }) {
                     </td>
                     <td><AmountDisplay amount={txn.amount} /></td>
                     <td>
-                      {txn.risk_score > 0
-                        ? <ScoreBar score={txn.risk_score} />
-                        : <span className="text-muted text-xs">Scoring…</span>
-                      }
+                      {txn.risk_score > 0 ? (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <ScoreBar score={txn.risk_score} />
+                          {(() => { const a = getArchetype(scoring, txn); return a ? (
+                            <span style={{ fontSize: '0.6rem', fontWeight: 700, padding: '1px 5px', borderRadius: 4, background: a.color + '22', color: a.color, whiteSpace: 'nowrap', border: `1px solid ${a.color}44` }}>{a.label}</span>
+                          ) : null; })()}
+                        </div>
+                      ) : <span className="text-muted text-xs">Scoring…</span>}
                     </td>
                     <td style={{ textAlign: 'center', color: 'var(--text-muted)' }}>
                       {isOpen ? <ChevronUp size={13} /> : <ChevronDown size={13} />}

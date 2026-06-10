@@ -3,8 +3,6 @@
 // ============================================================
 // Express.js + WebSocket server for the Anviksha fraud detection
 // system. Handles REST API, real-time WebSocket broadcasting,
-// ML pipeline orchestration, and mock data generation.
-// ============================================================
 
 import 'dotenv/config';
 import express from 'express';
@@ -13,50 +11,39 @@ import { WebSocketServer, WebSocket } from 'ws';
 import cors from 'cors';
 import { v4 as uuidv4 } from 'uuid';
 
-// Database
 import { stmts } from './db/index.js';
 
-// ML Engine
 import { initScoringEngine, scoreTransaction } from './ml/scoring-engine.js';
 import { initGraph, updateGraph, getNeighbors } from './ml/graph-analyzer.js';
 import { generateExplanation } from './ml/explainer.js';
 
-// Generators
 import { startTransactionGenerator } from './generators/transaction-generator.js';
 import { startI4CFeedGenerator } from './generators/i4c-feed-generator.js';
 
-// Routes
 import transactionsRouter from './routes/transactions.js';
 import accountsRouter from './routes/accounts.js';
 import alertsRouter from './routes/alerts.js';
 import dashboardRouter from './routes/dashboard.js';
 import regulatoryRouter from './routes/regulatory.js';
+import datasetScoringRouter from './routes/dataset-scoring.js';
 
 const PORT = parseInt(process.env.PORT) || 3001;
 const SIMULATION_INTERVAL = parseInt(process.env.SIMULATION_INTERVAL) || 2000;
 
-// ============================================================
-// Express App Setup
-// ============================================================
 const app = express();
 const httpServer = createServer(app);
 
 app.use(cors({ origin: '*' }));
 app.use(express.json());
 
-// ============================================================
-// WebSocket Server — Real-time event broadcasting
-// ============================================================
 const wss = new WebSocketServer({ server: httpServer });
 
-// Store connected clients
 const clients = new Set();
 
 wss.on('connection', (ws) => {
   clients.add(ws);
   console.log(`[WS] Client connected. Total: ${clients.size}`);
 
-  // Send initial state on connect
   const stats = stmts.getDashboardStats.get();
   ws.send(JSON.stringify({ type: 'init', data: stats }));
 
@@ -71,9 +58,6 @@ wss.on('connection', (ws) => {
   });
 });
 
-/**
- * Broadcast a message to all connected WebSocket clients.
- */
 function broadcast(type, data) {
   const message = JSON.stringify({ type, data, timestamp: new Date().toISOString() });
   for (const client of clients) {
@@ -83,26 +67,10 @@ function broadcast(type, data) {
   }
 }
 
-// ============================================================
-// Core Transaction Processing Pipeline
-// ============================================================
-
-/**
- * Process a new transaction through the full ML pipeline:
- * 1. Insert into database
- * 2. Update account connection graph
- * 3. Extract features + score with ML model
- * 4. Update account risk score
- * 5. Generate alert if high-risk
- * 6. Generate AI explanation for critical alerts
- * 7. Broadcast to dashboard via WebSocket
- */
 async function processTransaction(transaction) {
   try {
-    // Step 1: Score the RECEIVER (primary mule detection target)
     const scoring = await scoreTransaction(transaction, transaction.receiver_account_id);
 
-    // Update transaction with scores
     transaction.risk_score = scoring.compositeScore;
     transaction.is_flagged = scoring.compositeScore >= 41 ? 1 : 0;
     transaction.features_json = JSON.stringify(scoring.featureMap);
@@ -114,13 +82,10 @@ async function processTransaction(transaction) {
       anomaly: scoring.anomalyScore,
     });
 
-    // Step 2: Save transaction
     stmts.insertTransaction.run(transaction);
 
-    // Step 3: Update account graph
     updateGraph(transaction);
 
-    // Step 4: Save detailed risk score record
     stmts.insertRiskScore.run({
       id: uuidv4(),
       account_id: transaction.receiver_account_id,
@@ -135,11 +100,9 @@ async function processTransaction(transaction) {
       features_json: JSON.stringify(scoring.featureMap),
     });
 
-    // Step 5: Update account risk score (exponential moving average — smooths out spikes)
     const account = stmts.getAccount.get(transaction.receiver_account_id);
     if (account) {
       const prevScore = account.risk_score || 0;
-      // EMA: new score = 0.3 × current + 0.7 × previous (gives weight to history)
       const newScore = 0.3 * scoring.compositeScore + 0.7 * prevScore;
 
       let newStatus = account.status;
@@ -152,7 +115,6 @@ async function processTransaction(transaction) {
       stmts.updateAccountRisk.run({ risk_score: newScore, status: newStatus, id: account.id });
     }
 
-    // Step 6: Generate alert for medium+ risk transactions
     if (scoring.compositeScore >= 41) {
       const receiver = stmts.getAccount.get(transaction.receiver_account_id);
       const sender = stmts.getAccount.get(transaction.sender_account_id);
@@ -162,7 +124,6 @@ async function processTransaction(transaction) {
         ? `🚨 CRITICAL: Mule account pattern detected — ${receiver?.account_number}`
         : `⚠️ Suspicious transaction flagged — ${receiver?.account_number}`;
 
-      // Generate AI explanation for critical alerts
       let aiExplanation = null;
       if (scoring.compositeScore >= 65) {
         try {
@@ -192,7 +153,6 @@ async function processTransaction(transaction) {
 
       stmts.insertAlert.run(alert);
 
-      // Broadcast new alert
       broadcast('alert', {
         alert,
         account: receiver,
@@ -209,7 +169,6 @@ async function processTransaction(transaction) {
       }
     }
 
-    // Step 7: Broadcast transaction to live feed
     const sender = stmts.getAccount.get(transaction.sender_account_id);
     const receiver = stmts.getAccount.get(transaction.receiver_account_id);
     broadcast('transaction', {
@@ -226,16 +185,13 @@ async function processTransaction(transaction) {
   }
 }
 
-// ============================================================
-// API Routes
-// ============================================================
 app.use('/api/transactions', transactionsRouter);
 app.use('/api/accounts', accountsRouter);
 app.use('/api/alerts', alertsRouter);
 app.use('/api/dashboard', dashboardRouter);
 app.use('/api/regulatory', regulatoryRouter);
+app.use('/api/dataset', datasetScoringRouter);
 
-// Health check
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'ok',
@@ -246,9 +202,6 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// ============================================================
-// Startup Sequence
-// ============================================================
 async function start() {
   console.log('');
   console.log('╔══════════════════════════════════════════════╗');
@@ -257,23 +210,18 @@ async function start() {
   console.log('╚══════════════════════════════════════════════╝');
   console.log('');
 
-  // 1. Initialize ML scoring engine (load ONNX or fall back)
   await initScoringEngine();
 
-  // 2. Initialize account connection graph from DB
   initGraph();
 
-  // 3. Start HTTP + WebSocket server
   httpServer.listen(PORT, () => {
     console.log(`[SERVER] ✅ API running at http://localhost:${PORT}`);
     console.log(`[SERVER] ✅ WebSocket running at ws://localhost:${PORT}`);
     console.log(`[SERVER] ✅ Health check: http://localhost:${PORT}/api/health`);
   });
 
-  // 4. Start mock transaction stream
   startTransactionGenerator(processTransaction, SIMULATION_INTERVAL);
 
-  // 5. Start I4C regulatory feed
   startI4CFeedGenerator((entry) => {
     broadcast('suspect_registry', { entry });
     console.log(`[I4C] New entry: ${entry.identifier_value} from ${entry.source}`);
@@ -282,7 +230,6 @@ async function start() {
   console.log('[SERVER] 🚀 All systems running. Dashboard: http://localhost:5173\n');
 }
 
-// Graceful shutdown
 process.on('SIGINT', () => {
   console.log('\n[SERVER] Shutting down...');
   httpServer.close(() => {

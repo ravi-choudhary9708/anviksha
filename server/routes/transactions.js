@@ -58,7 +58,6 @@ router.post('/', async (req, res) => {
   }
 });
 
-// GET /api/transactions — List transactions
 router.get('/', (req, res) => {
   try {
     const limit = parseInt(req.query.limit) || 100;
@@ -68,7 +67,6 @@ router.get('/', (req, res) => {
       ? stmts.getFlaggedTransactions.all(limit)
       : stmts.getAllTransactions.all(limit);
 
-    // Enrich with sender/receiver account info
     const enriched = rows.map(txn => {
       const sender = stmts.getAccount.get(txn.sender_account_id);
       const receiver = stmts.getAccount.get(txn.receiver_account_id);
@@ -87,7 +85,6 @@ router.get('/', (req, res) => {
   }
 });
 
-// GET /api/transactions/:id — Single transaction with full details
 router.get('/:id', (req, res) => {
   try {
     const txn = stmts.getTransaction.get(req.params.id);

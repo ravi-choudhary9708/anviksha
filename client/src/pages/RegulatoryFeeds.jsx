@@ -38,7 +38,7 @@ export default function RegulatoryFeeds() {
 
   return (
     <div>
-      {/* Feed status cards */}
+      {}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16, marginBottom: 20 }}>
         {feeds.map(feed => {
           const info = SOURCE_INFO[feed.name?.replace(' Feed', '').replace(' Suspect Registry', '')] || {};
@@ -71,7 +71,7 @@ export default function RegulatoryFeeds() {
       </div>
 
       <div className="grid-2">
-        {/* Suspect Registry Table */}
+        {}
         <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
           <div className="card-header" style={{ padding: '14px 18px', borderBottom: '1px solid var(--border)' }}>
             <div className="card-title">🔴 Suspect Registry</div>
@@ -125,7 +125,7 @@ export default function RegulatoryFeeds() {
           )}
         </div>
 
-        {/* Add Suspect Form */}
+        {}
         <div className="card">
           <div className="card-header" style={{ marginBottom: 16 }}>
             <div className="card-title">➕ Add Suspect Entry</div>

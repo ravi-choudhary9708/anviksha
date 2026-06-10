@@ -21,7 +21,6 @@ export function RiskBadge({ score }) {
 
 // ============================================================
 // ScoreBar — Visual bar showing a score 0-100
-// ============================================================
 export function ScoreBar({ score, showValue = true }) {
   const level =
     score >= 71 ? 'critical' :
@@ -45,16 +44,10 @@ export function ScoreBar({ score, showValue = true }) {
   );
 }
 
-// ============================================================
-// StatusPill — Account/feed status indicator
-// ============================================================
 export function StatusPill({ status }) {
   return <span className={`status-pill ${status}`}>{status.replace('_', ' ')}</span>;
 }
 
-// ============================================================
-// AmountDisplay — Format INR amounts
-// ============================================================
 export function AmountDisplay({ amount, className = '' }) {
   const formatted = new Intl.NumberFormat('en-IN', {
     style: 'currency',
@@ -64,9 +57,6 @@ export function AmountDisplay({ amount, className = '' }) {
   return <span className={`font-mono ${className}`}>{formatted}</span>;
 }
 
-// ============================================================
-// TimeAgo — Relative timestamp
-// ============================================================
 export function TimeAgo({ ts }) {
   const date = new Date(ts);
   const diff = (Date.now() - date.getTime()) / 1000;
@@ -81,9 +71,6 @@ export function TimeAgo({ ts }) {
   return <span className="text-muted text-xs" title={date.toLocaleString('en-IN')}>{label}</span>;
 }
 
-// ============================================================
-// TxnTypeBadge — UPI / NEFT / IMPS badge
-// ============================================================
 const TYPE_COLORS = {
   UPI:  { bg: 'rgba(0, 212, 255, 0.12)', color: '#00d4ff' },
   NEFT: { bg: 'rgba(124, 58, 237, 0.15)', color: '#a78bfa' },
@@ -110,9 +97,6 @@ export function TxnTypeBadge({ type }) {
   );
 }
 
-// ============================================================
-// Spinner — Loading state
-// ============================================================
 export function Spinner({ size = 20 }) {
   return (
     <div style={{
@@ -125,7 +109,6 @@ export function Spinner({ size = 20 }) {
   );
 }
 
-// Add spin keyframes via style tag (once)
 if (typeof document !== 'undefined' && !document.getElementById('spin-style')) {
   const s = document.createElement('style');
   s.id = 'spin-style';
