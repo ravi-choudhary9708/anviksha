@@ -19,6 +19,7 @@ import { generateExplanation } from './ml/explainer.js';
 
 import { startTransactionGenerator } from './generators/transaction-generator.js';
 import { startI4CFeedGenerator } from './generators/i4c-feed-generator.js';
+import { initKafkaConsumer, stopKafkaConsumer } from './kafka-consumer.js';
 
 import transactionsRouter from './routes/transactions.js';
 import accountsRouter from './routes/accounts.js';
@@ -192,6 +193,34 @@ app.use('/api/dashboard', dashboardRouter);
 app.use('/api/regulatory', regulatoryRouter);
 app.use('/api/dataset', datasetScoringRouter);
 
+// ============================================================
+// Fallback Ingestion Layer — for standalone mode (no Go/Kafka)
+// ============================================================
+// When the Go microservice is running, it receives transactions,
+// publishes to Kafka, and the Node Kafka consumer calls processTransaction().
+// When Go is not running, the generator POSTs here directly.
+// Layer 1: JA3 TLS fingerprint check mirrors the Go microservice shield.
+// ============================================================
+const BLOCKED_JA3_HASHES = new Set([
+  '771,4865-4866-4867-49195-49199-49196-49200-52393-52392-49171-49172-156-157-47-53,0-23-65281-10-11-35-16-5-13-18-51-45-43-27-17513,29-23-24,0',
+  '771,4866-4867-4865-49196-49200-159-52393-52392-52394-49195-49199-158-49188-49192-107-49187-49191-103-49162-49172-57-49161-49171-51-157-156-53-47-255,0-11-10-35-22-23-13-43-45-51-21,29-23-30-25-24,0-1-2',
+]);
+
+app.post('/api/ingest', async (req, res) => {
+  const payload = req.body;
+  if (!payload) return res.status(400).json({ error: 'Invalid payload' });
+
+  // Layer 1: The Shield — drop known malicious TLS fingerprints instantly
+  if (payload.ja3_fingerprint && BLOCKED_JA3_HASHES.has(payload.ja3_fingerprint)) {
+    console.log(`[SECURITY] 🛡️ Dropped transaction — malicious JA3 fingerprint: ${payload.ja3_fingerprint.slice(0, 30)}...`);
+    return res.status(403).json({ status: 'rejected', reason: 'Malicious TLS fingerprint detected (Layer 1 Shield)' });
+  }
+
+  // Process asynchronously — don't block the HTTP response
+  processTransaction(payload).catch(err => console.error('[INGEST] Error:', err.message));
+  return res.status(202).json({ status: 'accepted', message: 'Transaction queued (Node fallback)' });
+});
+
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'ok',
@@ -220,6 +249,12 @@ async function start() {
     console.log(`[SERVER] ✅ Health check: http://localhost:${PORT}/api/health`);
   });
 
+  // Start Kafka consumer (listens to Go microservice → Redpanda topic)
+  // Gracefully falls back if Kafka/Redpanda is not running
+  await initKafkaConsumer(processTransaction);
+
+  // Start mock transaction stream
+  // Routes via Go ingest API → Kafka → here, or direct fallback
   startTransactionGenerator(processTransaction, SIMULATION_INTERVAL);
 
   startI4CFeedGenerator((entry) => {
@@ -230,8 +265,9 @@ async function start() {
   console.log('[SERVER] 🚀 All systems running. Dashboard: http://localhost:5173\n');
 }
 
-process.on('SIGINT', () => {
-  console.log('\n[SERVER] Shutting down...');
+process.on('SIGINT', async () => {
+  console.log('\n[SERVER] Shutting down gracefully...');
+  await stopKafkaConsumer();
   httpServer.close(() => {
     console.log('[SERVER] HTTP server closed');
     process.exit(0);

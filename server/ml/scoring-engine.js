@@ -2,14 +2,19 @@
 // Anviksha — ML Scoring Engine (Dataset Driven)
 // ============================================================
 // Loads XGBoost + Isolation Forest ONNX models trained on
-// the DataSet.csv and runs real-time inference on the 18 
+// the DataSet.csv and runs real-time inference on the 18
 // abstract features.
+//
+// Enhancements from go branch:
+//   - Redis real-time velocity tracking (graceful fallback)
+//   - Pseudo-SHAP feature contribution explanations
 // ============================================================
 
 import { existsSync, readFileSync } from 'fs';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { extractFeatures, FEATURE_NAMES } from './feature-extractor.js';
+import { createClient } from 'redis';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -26,8 +31,11 @@ let isoSession = null;
 let featureConfig = null;
 let useONNX = false;
 
+// Redis real-time feature store (velocity tracking)
+let redisClient = null;
+
 // ============================================================
-// Initialize — load ONNX models
+// Initialize — load ONNX models + Redis
 // ============================================================
 export async function initScoringEngine() {
   const modelsExist = existsSync(XGB_MODEL_PATH) && existsSync(ISO_MODEL_PATH);
@@ -57,6 +65,19 @@ export async function initScoringEngine() {
     useONNX = false;
   }
 
+  // Initialize Redis real-time feature store (velocity tracking)
+  // Gracefully degrades — system works fine without Redis
+  try {
+    const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
+    redisClient = createClient({ url: redisUrl });
+    redisClient.on('error', (err) => console.warn('[REDIS] Client Error:', err.message));
+    await redisClient.connect();
+    console.log('[REDIS] ✅ Connected to Redis Feature Store');
+  } catch (err) {
+    console.warn('[REDIS] ⚠️ Redis unavailable. Running without real-time velocity caching.');
+    redisClient = null;
+  }
+
   return useONNX;
 }
 
@@ -67,18 +88,20 @@ export async function initScoringEngine() {
 async function runXGBoostInference(features) {
   if (!xgbSession) return null;
   try {
-    const inputTensor = new ort.Tensor('float32', features, [1, FEATURE_NAMES.length]);
-    const feeds = { float_input: inputTensor };
-    const results = await xgbSession.run(feeds);
-    
-    const outputName = xgbSession.outputNames.find(n => n.includes('probabilities')) || xgbSession.outputNames[1] || xgbSession.outputNames[0];
+    const n = FEATURE_NAMES.length;
+    const padded = new Float32Array(n);
+    for (let i = 0; i < n; i++) padded[i] = i < features.length ? features[i] : 0.0;
+
+    const inputTensor = new ort.Tensor('float32', padded, [1, n]);
+    const results = await xgbSession.run({ float_input: inputTensor });
+
+    const outputName = xgbSession.outputNames.find(name => name.includes('probabilities'))
+      || xgbSession.outputNames[1]
+      || xgbSession.outputNames[0];
     const output = results[outputName];
-    
-    if (output && output.data) {
-      if (output.data.length >= 2) {
-        return output.data[1]; 
-      }
-      return output.data[0]; 
+
+    if (output?.data) {
+      return output.data.length >= 2 ? output.data[1] : output.data[0];
     }
     return null;
   } catch (err) {
@@ -113,13 +136,62 @@ async function runIsolationForestInference(features) {
   }
 }
 
+// ============================================================
+// Pseudo-SHAP: Feature Contribution Explanations
+// ============================================================
+// Approximates SHAP values using feature importance × deviation
+// from mean. Returns the top-3 drivers ranked by contribution.
+// ============================================================
+
+function computePseudoSHAP(features, config) {
+  if (!config || !config.feature_importance) return [];
+
+  const explanations = [];
+  for (let i = 0; i < config.feature_names.length; i++) {
+    const name = config.feature_names[i];
+    const val = features[i] || 0;
+    const importance = config.feature_importance[name] || 0;
+
+    // Deviation-weighted contribution: high importance + high deviation = big driver
+    const rawContribution = Math.abs(val) * importance;
+    explanations.push({ feature: name, value: val, rawContribution });
+  }
+
+  explanations.sort((a, b) => b.rawContribution - a.rawContribution);
+  const top3 = explanations.slice(0, 3);
+  const totalRaw = top3.reduce((s, x) => s + x.rawContribution, 0) || 1;
+
+  return top3.map((item) => ({
+    feature: item.feature,
+    value: item.value,
+    contributionPct: Math.min(Math.round((item.rawContribution / totalRaw) * 90), 99),
+  }));
+}
+
+// ============================================================
+// Main Scoring Function
+// ============================================================
+
 export async function scoreTransaction(transaction, accountId) {
   const { features, featureMap } = extractFeatures(transaction, accountId);
 
+  // Real-time velocity tracking via Redis (transactions per account in last 60s)
+  let velocityLast60s = 0;
+  if (redisClient?.isReady) {
+    try {
+      const key = `vel:${accountId}`;
+      await redisClient.incr(key);
+      await redisClient.expire(key, 60);
+      velocityLast60s = parseInt(await redisClient.get(key) || '0');
+    } catch (err) {
+      // Redis errors are non-fatal — scoring continues without velocity data
+    }
+  }
+
   let compositeScore = 0;
   let anomalyScore = 0;
-  let modelType = 'dataset_fallback';
-  
+  let modelType = 'rule_based_fallback';
+
   if (useONNX) {
     modelType = 'xgboost+isolation_forest';
     const xgbProb = await runXGBoostInference(features);
@@ -144,6 +216,9 @@ export async function scoreTransaction(transaction, accountId) {
 
   compositeScore = Math.round(compositeScore * 100) / 100;
 
+  // Pseudo-SHAP: compute feature contribution explanations
+  const shapExplanations = computePseudoSHAP(features, featureConfig);
+
   let riskLevel, action;
   if (compositeScore >= 71) { riskLevel = 'critical'; action = 'freeze_and_alert'; }
   else if (compositeScore >= 41) { riskLevel = 'high'; action = 'review_queue'; }
@@ -161,7 +236,9 @@ export async function scoreTransaction(transaction, accountId) {
     riskLevel,
     action,
     featureMap,
+    shapExplanations,
     features: Array.from(features),
+    realtimeMetrics: { velocityLast60s },
   };
 }
 

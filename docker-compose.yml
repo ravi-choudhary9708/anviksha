@@ -1,0 +1,65 @@
+﻿version: '3.8'
+
+services:
+  anviksha-app:
+    build: .
+    container_name: anviksha-app
+    ports:
+      - "3001:3001"
+      - "5173:5173"
+    environment:
+      - NODE_ENV=development
+      - PORT=3001
+      - KAFKA_BROKERS=redpanda:9092
+      - REDIS_URL=redis://redis:6379
+      - INGESTION_URL=http://ingestion-service:8080/api/ingest
+      # Note: For production, pass your GEMINI_API_KEY via a .env file or environment variables
+      # - GEMINI_API_KEY=${GEMINI_API_KEY}
+    volumes:
+      - ./data:/usr/src/app/data
+      - ./dataset:/usr/src/app/dataset
+    command: npm run dev
+    depends_on:
+      - redpanda
+      - redis
+      - ingestion-service
+
+  ingestion-service:
+    build: ./ingestion-service
+    container_name: ingestion-service
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+      - KAFKA_BROKERS=redpanda:9092
+      - KAFKA_TOPIC=raw_transactions
+    depends_on:
+      - redpanda
+
+  redis:
+    image: redis:7-alpine
+    container_name: anviksha-redis
+    ports:
+      - "6379:6379"
+
+  redpanda:
+    image: docker.redpanda.com/redpandadata/redpanda:v23.1.11
+    container_name: anviksha-redpanda
+    command:
+      - redpanda
+      - start
+      - --smp 1
+      - --memory 1G
+      - --reserve-memory 0M
+      - --overprovisioned
+      - --node-id 0
+      - --kafka-addr internal://0.0.0.0:9092,external://0.0.0.0:19092
+      - --advertise-kafka-addr internal://redpanda:9092,external://localhost:19092
+    ports:
+      - "19092:19092"
+      - "9092:9092"
+    volumes:
+      - redpanda_data:/var/lib/redpanda/data
+
+volumes:
+  redpanda_data:

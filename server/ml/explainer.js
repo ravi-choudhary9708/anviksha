@@ -68,6 +68,11 @@ async function callGemini({ transaction, account, scoring, neighbors, archetype 
 }
 
 function buildPrompt({ transaction, account, scoring, neighbors, archetype }) {
+  // Build SHAP top-drivers section if available from scoring engine
+  const shapLines = (scoring.shapExplanations || []).slice(0, 3)
+    .map((s, i) => `  ${i + 1}. Feature ${s.feature} (Contribution: ${s.contributionPct}%)`)
+    .join('\n');
+
   return `You are a fraud analyst at Bank of India. Write a 3-4 sentence STR (Suspicious Transaction Report) case summary for a compliance officer.
 
 ACCOUNT: ${account?.account_holder || 'Unknown'} | ${account?.account_number || 'N/A'} | ${account?.account_type || 'savings'} | Status: ${account?.status || 'active'}
@@ -75,10 +80,13 @@ TRANSACTION: ₹${Number(transaction.amount).toLocaleString('en-IN')} via ${tran
 FRAUD ARCHETYPE: ${archetype.archetype} — ${archetype.description}
 RISK SCORE: ${scoring.compositeScore}/100 (${scoring.riskLevel.toUpperCase()}) | Model: ${scoring.modelType}
 NETWORK: ${neighbors?.senders?.length || 0} incoming connections, ${neighbors?.receivers?.length || 0} outgoing
+TOP ML DRIVERS (Pseudo-SHAP):
+${shapLines || '  N/A — SHAP not available (ONNX models not loaded)'}
+REAL-TIME VELOCITY: ${scoring.realtimeMetrics?.velocityLast60s || 0} transactions in the last 60 seconds for this account
 
 Rules:
 1. State the fraud archetype and why it was flagged
-2. Mention the risk score and what drove it
+2. Mention the risk score and the top ML feature drivers
 3. Give a specific action (freeze/investigate/escalate to nodal officer/file STR with FIU-IND)
 4. Write as a professional compliance officer, no jargon explanations needed`;
 }
