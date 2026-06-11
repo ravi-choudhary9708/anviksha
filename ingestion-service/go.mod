@@ -1,4 +1,4 @@
-﻿module ingestion
+module ingestion
 
 go 1.22
 

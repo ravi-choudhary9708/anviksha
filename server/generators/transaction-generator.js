@@ -161,14 +161,21 @@ export function startTransactionGenerator(onTransaction, intervalMs = 2000) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(transaction),
-        signal: AbortSignal.timeout(1000), // 1s timeout — don't block pipeline
+        signal: AbortSignal.timeout(2000), // 2s timeout
       });
       if (!response.ok) {
-        throw new Error(`Go ingest returned ${response.status}`);
+        console.warn(`[GENERATOR] Ingestion service rejected txn with status: ${response.status}`);
+        return; // Do not process locally if rejected (e.g., 403 JA3 drop)
       }
-    } catch (_err) {
-      // Go microservice not running (standalone mode) — process directly
-      onTransaction(transaction);
+    } catch (err) {
+      // Only process locally if ingestion service is truly unreachable
+      if (err.name === 'TypeError' || err.code === 'ECONNREFUSED') {
+        onTransaction(transaction);
+      } else if (err.name === 'TimeoutError') {
+        console.warn('[GENERATOR] Ingestion service timeout, assuming it will process via Kafka');
+      } else {
+        console.error('[GENERATOR] Error sending to ingest:', err.message);
+      }
     }
   }, intervalMs);
 

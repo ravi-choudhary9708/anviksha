@@ -7,6 +7,9 @@
 **Real-time fraud detection system for the Bank of India Hackathon 2026**
 
 [![Node.js](https://img.shields.io/badge/Node.js-v20+-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
+[![Go](https://img.shields.io/badge/Go-1.21+-00ADD8?logo=go&logoColor=white)](https://go.dev/)
+[![Kafka](https://img.shields.io/badge/Kafka-Redpanda-E51F20?logo=apachekafka&logoColor=white)](https://redpanda.com/)
+[![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)](https://docker.com/)
 [![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=black)](https://react.dev/)
 [![Python](https://img.shields.io/badge/Python-3.9+-3776AB?logo=python&logoColor=white)](https://python.org/)
 [![XGBoost](https://img.shields.io/badge/ML-XGBoost+IsolationForest-FF6600)](https://xgboost.readthedocs.io/)
@@ -36,10 +39,11 @@ It ingests a live stream of UPI, NEFT, IMPS, and ATM transactions, extracts **18
 
 ![Architecture Diagram](docs/images/architecture.png)
 
-The system is structured as a monorepo:
-- **`/server`** — Node.js + Express backend with WebSocket server
+The system is structured as an event-driven microservices architecture:
+- **`ingestion-service/`** — Go microservice serving as a Layer 1 Shield (JA3 Fingerprinting)
+- **`Redpanda (Kafka)`** — High-throughput event broker for transaction streaming
+- **`/server`** — Node.js backend acting as a Kafka consumer, ML inference engine, and WebSocket server
 - **`/client`** — React + Vite frontend dashboard
-- **`/server/ml`** — Python training + Node.js ONNX inference
 
 ---
 
@@ -58,13 +62,15 @@ Every transaction goes through a 7-step pipeline:
 
 | Step | What Happens |
 |------|-------------|
-| 1️⃣ | Raw transaction ingested (UPI/NEFT/IMPS/ATM) |
-| 2️⃣ | **18 golden features** extracted from BOI dataset mapping |
-| 3️⃣ | **XGBoost ONNX** → fraud probability 0.0–1.0 |
-| 4️⃣ | **Isolation Forest ONNX** → anomaly score (catches novel patterns) |
-| 5️⃣ | **Composite score** computed (0–100) |
-| 6️⃣ | **Archetype Classifier**: Categorizes into FAN-IN MULE, RAPID LAYERING, etc. |
-| 7️⃣ | **Gemini AI** generates natural-language case explanation + STR Draft |
+| 1️⃣ | Raw transaction generated (UPI/NEFT/IMPS/ATM) |
+| 2️⃣ | **Go Ingestion Service** checks JA3 TLS fingerprint. Drops botnets instantly. |
+| 3️⃣ | Valid transaction is published to **Redpanda (Kafka)** `raw_transactions` topic |
+| 4️⃣ | Node.js consumes from Kafka. **18 golden features** extracted from dataset. |
+| 5️⃣ | **XGBoost ONNX** → fraud probability 0.0–1.0 |
+| 6️⃣ | **Isolation Forest ONNX** → anomaly score (catches novel patterns) |
+| 7️⃣ | **Composite score** computed (0–100) |
+| 8️⃣ | **Archetype Classifier**: Categorizes into FAN-IN MULE, RAPID LAYERING, etc. |
+| 9️⃣ | **Gemini AI** generates natural-language case explanation + STR Draft |
 
 ### 18 BOI Golden Features
 
@@ -104,28 +110,35 @@ SQLite database with 6 tables — zero install required.
 - Python 3.9+
 - npm v10+
 
-### 1. Clone & Install
+### 1. Clone & Setup
 
 ```bash
 git clone <repo-url>
 cd mule
 
-# Install all dependencies + seed the database
-npm run setup
-```
-
-### 2. Environment Setup
-
-```bash
+# Create environment file
 copy .env.example .env
 ```
+Edit `.env` (Optional: add your Gemini API Key. Has rule-based fallback if empty).
 
-Edit `.env`:
-```env
-PORT=3001
-DB_PATH=./data/anviksha.db
-SIMULATION_INTERVAL=2000
-GEMINI_API_KEY=your_key_here   # Optional — has rule-based fallback
+### 2. Run via Docker Compose (Recommended)
+
+The easiest way to start the entire microservices stack (Go, Redpanda, Redis, Node, React):
+
+```bash
+docker-compose up --build
+```
+*Note: The Node.js container automatically seeds the SQLite database on startup.*
+
+### 3. Alternative: Run Locally (Standalone Mode)
+
+If you don't want to use Docker, the Node.js server seamlessly falls back to a standalone mode (bypassing Go/Kafka):
+
+```bash
+# Install dependencies & seed database
+npm run setup
+# Start server & client concurrently
+npm run dev
 ```
 
 ### 3. Train ML Models (Optional)
@@ -171,7 +184,7 @@ npm run dev
 |---------|-----|
 | 🖥️ Dashboard | http://localhost:5173 |
 | 🔌 API | http://localhost:3001 |
-| 🏥 Health | http://localhost:3001/api/health |
+| 🛡️ Go Ingestion | http://localhost:8080 |
 | 📡 WebSocket | ws://localhost:3001 |
 
 On startup you should see:
@@ -360,18 +373,17 @@ python server/ml/train_model.py  # Train + export ONNX models
 
 | Component | Technology |
 |-----------|-----------|
+| Ingestion Layer | Go (Golang) |
+| Message Broker | Redpanda (Kafka compatible) |
 | Backend | Node.js 20 + Express.js 4 |
 | Real-time | WebSockets (`ws`) |
-| Database | SQLite (`better-sqlite3`) |
+| Database | SQLite (`better-sqlite3`) & Redis |
 | ML Inference | `onnxruntime-node` |
 | ML Training | XGBoost + scikit-learn (Python) |
 | ONNX Conversion | `onnxmltools` + `skl2onnx` |
 | GenAI | Google Gemini API |
 | Frontend | React 18 + Vite 6 |
-| Charts | Recharts |
-| Network Graph | D3.js v7 |
-| Icons | Lucide React |
-| Styling | Vanilla CSS (glassmorphism) |
+| Orchestration | Docker Compose |
 
 ---
 

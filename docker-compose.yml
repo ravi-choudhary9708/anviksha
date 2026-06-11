@@ -1,4 +1,4 @@
-﻿version: '3.8'
+version: '3.8'
 
 services:
   anviksha-app:
@@ -43,7 +43,7 @@ services:
       - "6379:6379"
 
   redpanda:
-    image: docker.redpanda.com/redpandadata/redpanda:v23.1.11
+    image: redpandadata/redpanda:v23.1.11
     container_name: anviksha-redpanda
     command:
       - redpanda

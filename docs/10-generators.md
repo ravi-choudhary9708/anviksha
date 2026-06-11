@@ -75,6 +75,17 @@ const dataset_features = {
 };
 ```
 
+### Layer 1 Shield: JA3 TLS Fingerprinting
+To simulate real-world botnet attacks, the generator injects a `ja3_fingerprint`. There is a 5% chance of injecting a known malicious fingerprint.
+```javascript
+  // Simulate JA3 TLS fingerprint
+  const isMaliciousBot = Math.random() < 0.05;
+  const ja3_fingerprint = isMaliciousBot
+    ? MALICIOUS_JA3[Math.floor(Math.random() * MALICIOUS_JA3.length)]
+    : NORMAL_JA3[Math.floor(Math.random() * NORMAL_JA3.length)];
+```
+When the generator POSTs this to the Go Ingestion Service (`http://ingestion-service:8080/api/ingest`), the Go service instantly drops the request (returning 403 Forbidden) before it ever reaches the Redpanda (Kafka) queue.
+
 ---
 
 ## I4C Feed Generator

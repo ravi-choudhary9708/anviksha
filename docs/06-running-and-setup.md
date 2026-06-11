@@ -33,21 +33,7 @@
 
 ## First-Time Setup (A→Z)
 
-### Step 1: Install Node.js dependencies
-
-```bash
-# From the project root (mule/ directory):
-npm run setup
-```
-
-This single command does:
-```
-npm install               → installs root dependencies (express, ws, better-sqlite3, etc.)
-cd client && npm install  → installs client dependencies (react, d3, recharts, etc.)
-npm run seed              → creates data/anviksha.db + populates with 50 accounts, 200 txns
-```
-
-### Step 2: Create environment file
+### Step 1: Create environment file
 
 ```bash
 copy .env.example .env
@@ -61,31 +47,24 @@ SIMULATION_INTERVAL=2000
 GEMINI_API_KEY=             ← add your key here, or leave blank
 ```
 
-### Step 3: Install Python dependencies (for ML training)
+### Step 2: Start via Docker Compose (Recommended)
+
+The entire microservices architecture (Go Ingestion, Redpanda Kafka, Redis, Node Backend, React Frontend) is orchestrated via Docker Compose.
 
 ```bash
-pip install xgboost scikit-learn numpy pandas onnx skl2onnx onnxmltools onnxconverter-common
+docker-compose up --build
 ```
 
-### Step 4: Train ML models
+*Note: The Node.js container automatically installs dependencies, builds the Vite frontend, and seeds the SQLite database on startup.*
 
-```bash
-python server/ml/train_model.py
-```
-
-Takes ~45 seconds. Creates `server/ml/models/xgboost_fraud.onnx`, `isolation_forest.onnx`, and `feature_config.json`.
-
-> Skip this step if you want to run in rule-based fallback mode (still works, just not real ML).
-
-### Step 5: Start the application
-
-```bash
-npm run dev
-```
-
-### Step 6: Open the dashboard
+### Step 3: Open the dashboard
 
 Navigate to **http://localhost:5173** in your browser.
+
+> **Optional: Standalone Mode**
+> If you don't have Docker, you can run the system in standalone mode (which bypasses the Go microservice and Kafka, posting directly to Node).
+> 1. `npm run setup`
+> 2. `npm run dev`
 
 ---
 
@@ -224,6 +203,9 @@ When you run `npm run dev:server`, here is exactly what happens in `server/index
 12. startTransactionGenerator(processTransaction, SIMULATION_INTERVAL):
     → Starts setInterval loop
     → Generates a transaction every SIMULATION_INTERVAL ms
+    → POSTs transaction to Go Ingestion Service (http://ingestion-service:8080)
+    → Go service checks JA3 fingerprint, drops bad actors (403), or publishes to Redpanda (Kafka)
+    → Node.js Kafka Consumer reads from 'raw_transactions' topic
     → Passes each transaction through processTransaction()
 13. startI4CFeedGenerator(callback, 45000):
     → Starts random-interval loop

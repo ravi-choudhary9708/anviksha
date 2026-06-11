@@ -28,7 +28,13 @@
 The Anviksha ML system uses **two complementary models**:
 
 ```
-Transaction
+Go Ingestion Service (JA3 Shield)
+    │
+    ▼
+Redpanda (Kafka Topic: raw_transactions)
+    │
+    ▼
+Node.js Kafka Consumer
     │
     ▼
 [Feature Extraction]

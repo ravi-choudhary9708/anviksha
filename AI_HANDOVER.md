@@ -15,10 +15,20 @@ Welcome! This document provides all the context, architecture, status, and instr
 
 ## 2. Architecture & Tech Stack
 
-The system is structured as a monorepo containing a Node.js backend and a Vite+React frontend:
+The system has evolved into an event-driven microservices architecture:
+
+### Event Broker & Orchestration
+*   **Message Broker:** Redpanda (Kafka API compatible) for high-throughput transaction streaming.
+*   **Caching/State:** Redis (currently provisioned via Docker for future scaling).
+*   **Orchestration:** Docker Compose binds the microservices together.
+
+### Ingestion Service (`/ingestion-service`)
+*   **Language:** Go (Golang)
+*   **Role:** Acts as a "Layer 1 Shield". It receives raw transactions, checks for malicious JA3 TLS fingerprints, instantly drops automated botnet traffic (returning HTTP 403), and pushes valid transactions to the `raw_transactions` Kafka topic.
 
 ### Backend (`/server`)
-*   **Framework:** Express.js + WebSockets (`ws` package) for real-time dashboard updates.
+*   **Framework:** Node.js + Express.js + WebSockets (`ws`) for real-time dashboard updates.
+*   **Kafka Consumer:** Listens to the Redpanda `raw_transactions` topic and pipes messages into the ML scoring engine.
 *   **Database:** SQLite (`better-sqlite3` for zero-configuration, synchronous, high-performance database access).
 *   **ML Engine (`/server/ml`):**
     *   **Feature Extractor:** Extracts **18 abstract golden features** directly mapped from the BOI `DataSet.csv`.
@@ -59,16 +69,9 @@ All database transactions are logged in SQLite (`data/anviksha.db`). The tables 
 
 ## 4. How to Set Up & Run the Project
 
-Ensure you have Node.js installed. Follow these commands:
+The system is now designed to run via Docker Compose, which spins up Go, Redpanda, Redis, Node, and React simultaneously.
 
-### Step A: Install Dependencies
-Run from the root directory:
-```bash
-npm run setup
-```
-*(This installs root and client packages, and initializes the SQLite database with seed data).*
-
-### Step B: Environment Variables
+### Step A: Clone & Environment Variables
 Create a `.env` file in the root directory:
 ```env
 PORT=3001
@@ -77,13 +80,23 @@ DB_PATH=./data/anviksha.db
 SIMULATION_INTERVAL=2000
 ```
 
-### Step C: Start the Development Server
-Start the frontend and backend concurrently:
+### Step B: Start via Docker (Recommended)
+Run from the root directory:
 ```bash
+docker-compose up --build
+```
+*   Go Ingestion Service runs at: `http://localhost:8080`
+*   Node Backend runs at: `http://localhost:3001`
+*   React Frontend runs at: `http://localhost:5173`
+
+*(Note: The Node.js container automatically seeds the SQLite database on startup).*
+
+### Alternative: Standalone Node Mode
+If Docker is unavailable, the Node server gracefully falls back to standalone mode (bypassing Go/Kafka).
+```bash
+npm run setup
 npm run dev
 ```
-*   Backend runs at: `http://localhost:3001`
-*   Frontend runs at: `http://localhost:5173`
 
 ---
 
