@@ -1,0 +1,94 @@
+{
+  "dataset": "IEEE-CIS Fraud Detection (public/)",
+  "train_total": 472432,
+  "train_fraud": 16599,
+  "train_fraud_rate": "3.51%",
+  "validation_total": 118108,
+  "validation_fraud": 4064,
+  "metrics": {
+    "roc_auc": 0.8043,
+    "recall": 54.48,
+    "precision": 12.4,
+    "f1_score": 0.202,
+    "optimal_threshold": 0.12,
+    "confusion_matrix": {
+      "true_positives": 2214,
+      "false_positives": 15647,
+      "false_negatives": 1850,
+      "true_negatives": 98397
+    }
+  },
+  "test_results": {
+    "total_transactions": 506691,
+    "flagged_frauds": 88258,
+    "flagged_rate": "17.42%",
+    "average_fraud_prob": 0.0821
+  },
+  "top_predictive_features": [
+    {
+      "feature": "C4",
+      "iv": 0.8148538155178807
+    },
+    {
+      "feature": "C8",
+      "iv": 0.7321523070899982
+    },
+    {
+      "feature": "C7",
+      "iv": 0.7170733085590353
+    },
+    {
+      "feature": "R_emaildomain",
+      "iv": 0.599275991111102
+    },
+    {
+      "feature": "V90",
+      "iv": 0.5610023038600499
+    },
+    {
+      "feature": "V29",
+      "iv": 0.546076114394232
+    },
+    {
+      "feature": "ProductCD",
+      "iv": 0.5297171707878688
+    },
+    {
+      "feature": "M4",
+      "iv": 0.4412644312123481
+    },
+    {
+      "feature": "C14",
+      "iv": 0.380077279114327
+    },
+    {
+      "feature": "M6",
+      "iv": 0.37781339474426917
+    },
+    {
+      "feature": "C13",
+      "iv": 0.35162470204842244
+    },
+    {
+      "feature": "D2",
+      "iv": 0.32980283121918375
+    },
+    {
+      "feature": "D3",
+      "iv": 0.298680184575596
+    },
+    {
+      "feature": "C1",
+      "iv": 0.28201593115205
+    },
+    {
+      "feature": "C2",
+      "iv": 0.2732572460797006
+    }
+  ],
+  "output_files": {
+    "predictions_csv": "C:\\Users\\ravi\\Desktop\\anviksha\\public\\submission_result.csv",
+    "metrics_json": "C:\\Users\\ravi\\Desktop\\anviksha\\public\\model_results.json"
+  },
+  "execution_time_seconds": 13.3
+}

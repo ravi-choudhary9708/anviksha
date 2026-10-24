@@ -14,6 +14,7 @@ import { existsSync, readFileSync } from 'fs';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { extractFeatures, FEATURE_NAMES } from './feature-extractor.js';
+import { getGraphRiskScore, getGraphMetrics } from './graph-analyzer.js';
 import { createClient } from 'redis';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -176,7 +177,7 @@ function computePseudoSHAP(features, config) {
 }
 
 // ============================================================
-// Main Scoring Function
+// Main Scoring Function (Fused ML + Graph Architecture)
 // ============================================================
 
 export async function scoreTransaction(transaction, accountId) {
@@ -199,8 +200,20 @@ export async function scoreTransaction(transaction, accountId) {
   let anomalyScore = 0;
   let modelType = 'rule_based_fallback';
 
+  // Real-time network topology risk score & metrics from Graph Engine
+  const realGraphScore = accountId ? getGraphRiskScore(accountId) : 0;
+  const graphMetrics = accountId ? getGraphMetrics(accountId) : {
+    fanIn: 0,
+    fanOut: 0,
+    totalIn: 0,
+    totalOut: 0,
+    passthroughRatio: 0,
+    graphRiskScore: 0,
+    isSyndicateHub: false,
+  };
+
   if (useONNX) {
-    modelType = 'xgboost+isolation_forest';
+    modelType = 'xgboost+isolation_forest+graph';
     const xgbProb = await runXGBoostInference(features);
     const isoResult = await runIsolationForestInference(features);
 
@@ -208,23 +221,59 @@ export async function scoreTransaction(transaction, accountId) {
       const xgbScore = xgbProb * 100;
       let isoBoost = 0;
       if (isoResult?.label === -1) {
-        isoBoost = Math.min(20, Math.abs(isoResult.score) * 30);
+        isoBoost = Math.min(15, Math.abs(isoResult.score) * 25);
         anomalyScore = isoBoost;
       }
-      compositeScore = Math.min(100, xgbScore + isoBoost);
+      
+      // Multi-layer risk fusion:
+      // Fuses Tabular ML probability (60%) + Graph Syndicate Topology (40%) + Isolation Forest Anomaly Boost
+      if (realGraphScore > 0) {
+        compositeScore = Math.min(100, (xgbScore * 0.60) + (realGraphScore * 0.40) + isoBoost);
+      } else {
+        compositeScore = Math.min(100, xgbScore + isoBoost);
+      }
     } else {
       // Fallback: use known label from dataset if available
-      compositeScore = transaction.dataset_features?.F3924 === 1 ? 80 : 10;
-      modelType = 'dataset_fallback';
+      const baseScore = transaction.dataset_features?.F3924 === 1 ? 80 : 10;
+      if (realGraphScore > 0) {
+        compositeScore = Math.min(100, (baseScore * 0.60) + (realGraphScore * 0.40));
+      } else {
+        compositeScore = baseScore;
+      }
+      modelType = 'dataset_fallback+graph';
     }
   } else {
-    compositeScore = transaction.dataset_features?.F3924 === 1 ? 80 : 10;
+    const baseScore = transaction.dataset_features?.F3924 === 1 ? 80 : 10;
+    if (realGraphScore > 0) {
+      compositeScore = Math.min(100, (baseScore * 0.60) + (realGraphScore * 0.40));
+    } else {
+      compositeScore = baseScore;
+    }
+    modelType = 'rule_based_fallback+graph';
   }
 
   compositeScore = Math.round(compositeScore * 100) / 100;
 
   // Pseudo-SHAP: compute feature contribution explanations
   const shapExplanations = computePseudoSHAP(features, featureConfig);
+
+  // If graph signals indicate network risk, add topology driver to explanations
+  if (realGraphScore >= 20) {
+    let graphDesc = 'Graph: Syndicate Link';
+    if (graphMetrics.isSyndicateHub) {
+      graphDesc = `Graph: Aggregation Hub (Fan-In: ${graphMetrics.fanIn}, Fan-Out: ${graphMetrics.fanOut})`;
+    } else if (graphMetrics.fanIn >= 5) {
+      graphDesc = `Graph: High Fan-In Hub (${graphMetrics.fanIn} senders)`;
+    } else if (graphMetrics.passthroughRatio >= 0.8) {
+      graphDesc = `Graph: Rapid Passthrough (${(graphMetrics.passthroughRatio * 100).toFixed(0)}% turnover)`;
+    }
+
+    shapExplanations.unshift({
+      feature: graphDesc,
+      value: realGraphScore,
+      contributionPct: Math.min(Math.round(realGraphScore * 0.4), 95),
+    });
+  }
 
   let riskLevel, action;
   if (compositeScore >= 71) { riskLevel = 'critical'; action = 'freeze_and_alert'; }
@@ -236,7 +285,9 @@ export async function scoreTransaction(transaction, accountId) {
     compositeScore,
     velocityScore: Math.round(compositeScore * 0.3),
     behavioralScore: Math.round(compositeScore * 0.4),
-    graphScore: Math.round(compositeScore * 0.2),
+    graphScore: realGraphScore,
+    graphMetrics,
+    isSyndicateHub: graphMetrics.isSyndicateHub,
     regulatoryScore: Math.round(compositeScore * 0.1),
     anomalyScore: Math.round(anomalyScore),
     modelType,
@@ -245,7 +296,10 @@ export async function scoreTransaction(transaction, accountId) {
     featureMap,
     shapExplanations,
     features: Array.from(features),
-    realtimeMetrics: { velocityLast60s },
+    realtimeMetrics: {
+      velocityLast60s,
+      graph: graphMetrics
+    },
   };
 }
 

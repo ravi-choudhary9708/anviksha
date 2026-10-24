@@ -34,7 +34,10 @@ router.post('/', async (req, res) => {
       ml_scores_json: null,
     };
 
-    // Score the transaction (evaluate receiver as primary suspect)
+    // Update graph topology in real time so scoring reflects the active edge
+    updateGraph(transaction);
+
+    // Score the transaction (evaluate receiver as primary suspect) with fused ML + Graph
     const scoring = await scoreTransaction(transaction, receiver_account_id);
 
     transaction.risk_score = scoring.compositeScore;
@@ -49,7 +52,6 @@ router.post('/', async (req, res) => {
     });
 
     stmts.insertTransaction.run(transaction);
-    updateGraph(transaction);
 
     return res.status(201).json({ transaction, scoring });
   } catch (err) {

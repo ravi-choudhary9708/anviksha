@@ -112,6 +112,37 @@ export function getGraphRiskScore(accountId) {
   return Math.min(score, 100);
 }
 
+export function getGraphMetrics(accountId) {
+  const node = graph[accountId];
+  if (!node) {
+    return {
+      fanIn: 0,
+      fanOut: 0,
+      totalIn: 0,
+      totalOut: 0,
+      passthroughRatio: 0,
+      graphRiskScore: 0,
+      isSyndicateHub: false,
+    };
+  }
+
+  const fanIn = Object.keys(node.incoming).length;
+  const fanOut = Object.keys(node.outgoing).length;
+  const passthroughRatio = node.totalIn > 0 ? Math.min(node.totalOut / node.totalIn, 2.0) : 0;
+  const graphRiskScore = getGraphRiskScore(accountId);
+  const isSyndicateHub = (fanIn >= 8) || (fanIn >= 5 && fanOut >= 3);
+
+  return {
+    fanIn,
+    fanOut,
+    totalIn: Math.round(node.totalIn),
+    totalOut: Math.round(node.totalOut),
+    passthroughRatio: Math.round(passthroughRatio * 100) / 100,
+    graphRiskScore,
+    isSyndicateHub,
+  };
+}
+
 export function getGraphData() {
   const nodes = [];
   const links = [];

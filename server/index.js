@@ -70,6 +70,10 @@ function broadcast(type, data) {
 
 async function processTransaction(transaction) {
   try {
+    // 1. Update graph topology in real time so scoring reflects the active edge
+    updateGraph(transaction);
+
+    // 2. Score transaction using Fused ML + Graph engine
     const scoring = await scoreTransaction(transaction, transaction.receiver_account_id);
 
     transaction.risk_score = scoring.compositeScore;
@@ -84,8 +88,6 @@ async function processTransaction(transaction) {
     });
 
     stmts.insertTransaction.run(transaction);
-
-    updateGraph(transaction);
 
     stmts.insertRiskScore.run({
       id: uuidv4(),
