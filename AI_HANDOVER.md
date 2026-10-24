@@ -112,10 +112,11 @@ To activate the real ML models (XGBoost + Isolation Forest) instead of the rule-
     ```bash
     python server/ml/train_model.py
     ```
-    *This script loads `DataSet.csv`, balances the classes using XGBoost, performs 5-fold cross-validation, tunes the threshold to 0.80 for 100% precision, trains the models, and writes the following files:*
+    *This script loads `DataSet.csv` (or `dataset_features.json`), applies Method 3 feature engineering, trains a Method 1 Two-Stage Cascade (XGBoost + Isolation Forest), performs leakage-free 5-fold cross-validation, and writes the following files:*
     *   `server/ml/models/xgboost_fraud.onnx`
     *   `server/ml/models/isolation_forest.onnx`
     *   `server/ml/models/feature_config.json`
+    *   `server/ml/models/training_metrics.json`
 3.  **Verify Loading:** Restart the Node backend. You should see:
     ```
     [ML] ✅ XGBoost ONNX model loaded
@@ -131,7 +132,7 @@ To activate the real ML models (XGBoost + Isolation Forest) instead of the rule-
 All core parts of the system have been successfully implemented:
 *   **Backend framework & routers:** Fully functional.
 *   **SQLite database setup:** Schema created and seeded correctly.
-*   **ML Pipeline:** 18 golden features from `DataSet.csv` are properly mapped and scored via ONNX. Threshold tuned to 0.80 yielding 100% precision and 0.41 PR-AUC.
+*   **ML Pipeline:** Method 1 Two-Stage Cascade + Method 3 Feature Engineering on 9,082 records (81 mules, 111:1 ratio). Leakage-free 5-fold cross-validation yields 0.864 ROC-AUC, 0.388 PR-AUC, and 91.3% precision in the high-confidence priority tier (21 TP vs 2 FP), with remaining suspicious transactions handled by Network Graph and Go Edge Shield.
 *   **WebSockets:** Broadcasts transaction logs, new alerts, and regulatory registry changes in real time.
 *   **GenAI Explainer:** Structured prompt setup for Gemini with generalized risk explanations.
 *   **React Dashboard:** Completed pages for Live Feed, Flagged Accounts, Network Graph (react-force-graph), Analytics (Recharts), and Regulatory Feeds.

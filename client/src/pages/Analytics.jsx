@@ -82,7 +82,7 @@ export default function Analytics({ stats }) {
         {[
           { label: 'ROC-AUC', value: '0.94', color: '#00e676', sub: 'Industry standard: 0.85+' },
           { label: 'PR-AUC', value: '0.41', color: '#00d4ff', sub: '46× better than random' },
-          { label: 'Precision', value: '100%', color: '#a78bfa', sub: 'Zero false positives' },
+          { label: 'Precision', value: '91.3%', color: '#a78bfa', sub: 'High-conf priority queue' },
           { label: 'CV ROC-AUC', value: '0.845', color: '#facc15', sub: '5-fold validated ±0.076' },
         ].map(({ label, value, color, sub }) => (
           <div key={label} style={{ textAlign: 'center', minWidth: 100 }}>

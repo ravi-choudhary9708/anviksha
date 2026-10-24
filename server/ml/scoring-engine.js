@@ -69,12 +69,19 @@ export async function initScoringEngine() {
   // Gracefully degrades — system works fine without Redis
   try {
     const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
-    redisClient = createClient({ url: redisUrl });
-    redisClient.on('error', (err) => console.warn('[REDIS] Client Error:', err.message));
+    redisClient = createClient({
+      url: redisUrl,
+      socket: {
+        reconnectStrategy: false,
+        connectTimeout: 1000
+      }
+    });
+    redisClient.on('error', () => {}); // Silence background retry noise
     await redisClient.connect();
     console.log('[REDIS] ✅ Connected to Redis Feature Store');
   } catch (err) {
-    console.warn('[REDIS] ⚠️ Redis unavailable. Running without real-time velocity caching.');
+    console.log('[REDIS] ℹ️ Running without Redis (in-memory tracking active)');
+    try { await redisClient?.disconnect(); } catch (_) {}
     redisClient = null;
   }
 

@@ -25,7 +25,7 @@
 
 **Anviksha** (Sanskrit: "analytical investigation") detects **mule accounts** — bank accounts used as financial intermediaries to launder fraud proceeds — in real time.
 
-It ingests a live stream of UPI, NEFT, IMPS, and ATM transactions, extracts **18 golden abstract features** directly from the Bank of India dataset, runs them through an **XGBoost + Isolation Forest** model exported to ONNX (achieving **100% precision and 0.845 CV score**), and uses the **Gemini API** to generate FIU-IND compliant STR reports and natural-language case summaries for flagged accounts.
+It ingests a live stream of UPI, NEFT, IMPS, and ATM transactions, extracts **18 golden abstract features** plus **4 domain-engineered discriminative features** directly from the Bank of India dataset (9,082 accounts, 81 mules), runs them through a **Two-Stage Cascade (XGBoost + Isolation Forest)** exported to ONNX (achieving **0.86 ROC-AUC and 91.3% high-confidence precision under leakage-free 5-fold cross-validation**), and uses the **Gemini API** to generate FIU-IND compliant STR reports and natural-language case summaries for flagged accounts.
 
 > 🏆 Built for the **Bank of India Hackathon 2026** — Problem 2: Mule Account / Fraud Detection
 
@@ -78,9 +78,11 @@ Every transaction goes through a 7-step pipeline:
 F115, F321, F527, F531, F670, F1692, F2082, F2122, F2582,
 F2678, F2737, F2956, F3043, F3836, F3887, F3889, F3891, F3894
 
-Model trained on highly imbalanced dataset (111:1 ratio).
-Threshold tuned to 0.80 ensuring 100% Precision (0 False Positives).
-Cross-Validation ROC-AUC: 0.845 ± 0.076.
+Model trained on 9,082 real Bank of India accounts (111:1 ratio: 9,001 normal, 81 mules).
+Method 1: Two-Stage Cascade Architecture (Screening Filter ≥ 0.30 → Precision Sieve ≥ 0.75).
+Method 3: 4 Derived Features (Turnover Ratio, Velocity Burst, Passthrough Score, Round-Amount Flag).
+Leakage-Free 5-Fold Stratified Cross-Validation: 0.864 ROC-AUC, 0.388 PR-AUC (43× better than random baseline).
+High-Confidence Priority Queue: 91.3% Precision (21 TP vs 2 FP); borderline cases caught by Graph & Shield layers.
 ```
 
 ---

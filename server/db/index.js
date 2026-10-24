@@ -3,9 +3,7 @@
 // Uses better-sqlite3 for synchronous, fast SQLite access
 // ============================================================
 
-import Database from 'better-sqlite3';
-import { readFileSync } from 'fs';
-import { mkdirSync, existsSync } from 'fs';
+import { readFileSync, mkdirSync, existsSync } from 'fs';
 import { dirname, resolve } from 'path';
 import { fileURLToPath } from 'url';
 
@@ -21,15 +19,81 @@ if (!existsSync(dbDir)) {
   mkdirSync(dbDir, { recursive: true });
 }
 
-const db = new Database(resolvedDbPath);
+let db;
+try {
+  // Use Node.js built-in zero-dependency SQLite (Node 22.5+, Node 24+)
+  const { DatabaseSync } = await import('node:sqlite');
+  db = new DatabaseSync(resolvedDbPath);
+  db.pragma = function(str) { db.exec('PRAGMA ' + str); };
+  db.transaction = function(fn) {
+    return function(...args) {
+      db.exec('BEGIN');
+      try {
+        const res = fn(...args);
+        db.exec('COMMIT');
+        return res;
+      } catch (err) {
+        db.exec('ROLLBACK');
+        throw err;
+      }
+    };
+  };
+
+  // node:sqlite strict mode requires only exact named parameters
+  const origPrepare = db.prepare.bind(db);
+    db.prepare = function(sql) {
+      const stmt = origPrepare(sql);
+      const paramMatches = sql.match(/[@:$][a-zA-Z0-9_]+/g);
+      if (!paramMatches) return stmt;
+      const allowedKeys = new Set(paramMatches.map(p => p.slice(1)));
+
+      const origRun = stmt.run.bind(stmt);
+      const origGet = stmt.get.bind(stmt);
+      const origAll = stmt.all.bind(stmt);
+
+      stmt.run = function(...args) {
+        if (args.length === 1 && typeof args[0] === 'object' && args[0] !== null && !Array.isArray(args[0])) {
+          const filtered = {};
+          for (const k of allowedKeys) filtered[k] = args[0][k] !== undefined ? args[0][k] : null;
+          return origRun(filtered);
+        }
+        return origRun(...args);
+      };
+
+      stmt.get = function(...args) {
+        if (args.length === 1 && typeof args[0] === 'object' && args[0] !== null && !Array.isArray(args[0])) {
+          const filtered = {};
+          for (const k of allowedKeys) filtered[k] = args[0][k] !== undefined ? args[0][k] : null;
+          return origGet(filtered);
+        }
+        return origGet(...args);
+      };
+
+      stmt.all = function(...args) {
+        if (args.length === 1 && typeof args[0] === 'object' && args[0] !== null && !Array.isArray(args[0])) {
+          const filtered = {};
+          for (const k of allowedKeys) filtered[k] = args[0][k] !== undefined ? args[0][k] : null;
+          return origAll(filtered);
+        }
+        return origAll(...args);
+      };
+
+      return stmt;
+    };
+    console.log(`[DB] ✅ Node.js native SQLite initialized at ${resolvedDbPath}`);
+  } catch (err) {
+  // Graceful fallback to better-sqlite3 if on older Node
+  const { default: BetterSqlite3 } = await import('better-sqlite3');
+  db = new BetterSqlite3(resolvedDbPath);
+  console.log(`[DB] ✅ better-sqlite3 initialized at ${resolvedDbPath}`);
+}
+
 db.pragma('journal_mode = WAL');
 db.pragma('foreign_keys = ON');
 
 const schemaPath = resolve(__dirname, 'schema.sql');
 const schema = readFileSync(schemaPath, 'utf-8');
 db.exec(schema);
-
-console.log(`[DB] SQLite initialized at ${resolvedDbPath}`);
 
 const stmts = {
   insertAccount: db.prepare(`

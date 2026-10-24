@@ -1,13 +1,19 @@
-﻿import { Kafka } from 'kafkajs';
+import { Kafka } from 'kafkajs';
 
 let consumer = null;
 
 export async function initKafkaConsumer(onMessage) {
-  const brokers = process.env.KAFKA_BROKERS ? process.env.KAFKA_BROKERS.split(',') : ['localhost:9092'];
+  if (!process.env.KAFKA_BROKERS) {
+    console.log('[KAFKA] ℹ️ Kafka not enabled (standalone generator active)');
+    return;
+  }
+
+  const brokers = process.env.KAFKA_BROKERS.split(',');
   
   const kafka = new Kafka({
     clientId: 'anviksha-scoring-engine',
     brokers: brokers,
+    retry: { retries: 1 }
   });
 
   consumer = kafka.consumer({ groupId: 'scoring-group' });
