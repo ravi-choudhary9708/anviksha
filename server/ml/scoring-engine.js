@@ -96,7 +96,8 @@ export async function initScoringEngine() {
 async function runXGBoostInference(features) {
   if (!xgbSession) return null;
   try {
-    const n = FEATURE_NAMES.length;
+    // xgboost_fraud.onnx expects the 18 base BOI golden features
+    const n = 18;
     const padded = new Float32Array(n);
     for (let i = 0; i < n; i++) padded[i] = i < features.length ? features[i] : 0.0;
 
@@ -121,7 +122,7 @@ async function runXGBoostInference(features) {
 async function runIsolationForestInference(features) {
   if (!isoSession) return null;
   try {
-    const n = FEATURE_NAMES.length;
+    const n = 18;
     const padded = new Float32Array(n);
     for (let i = 0; i < n; i++) padded[i] = i < features.length ? features[i] : 0.0;
 

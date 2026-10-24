@@ -30,12 +30,12 @@ BASE_GOLDEN_FEATURES = [
     'F3889', 'F3891', 'F3894'
 ]
 
-# METHOD 3: High-Discrimination Feature Names
+# METHOD 3: Active Discriminative Features (Neutral Mathematical Ratios)
 DERIVED_FEATURES = [
-    'F_turnover_ratio',    # F3043 / (F2956 + 1e-5) -> Money Turnover (Debits vs Credits)
-    'F_velocity_burst',    # F2082 * F1692 -> Simultaneous velocity & frequency spike
-    'F_round_amount',      # F3836 % 10000 == 0 -> Synthetic round number anomaly
-    'F_passthrough'        # F321 / (F115 + 1e-5) -> Spending vs Income passthrough ratio
+    'F_ratio_3043_2956',   # Continuous ratio of F3043 to (F2956 + 1e-5)
+    'F_ratio_2582_2678',   # Continuous ratio of F2582 to (F2678 + 1e-5)
+    'F_mod10k_3836',       # Indicator for round multiples of 10,000 on F3836
+    'F_ratio_321_115'      # Continuous ratio of F321 to (F115 + 1e-5)
 ]
 
 ALL_FEATURES = BASE_GOLDEN_FEATURES + DERIVED_FEATURES
@@ -47,29 +47,22 @@ TARGET = 'F3924'
 # ==============================================================================
 def engineer_fraud_features(df):
     """
-    Method 3: Adds 4 domain-engineered discriminative features that make
-    mules stand out cleanly from innocent accounts without causing false alarms.
+    Adds active domain-engineered mathematical features that enhance
+    discrimination without relying on dead indicators.
     """
     df = df.copy()
-
-    # 1. Turnover Ratio: Mules receive and pass forward immediately
     f3043 = pd.to_numeric(df['F3043'], errors='coerce').fillna(0)
     f2956 = pd.to_numeric(df['F2956'], errors='coerce').fillna(0)
-    df['F_turnover_ratio'] = f3043 / (f2956 + 1e-5)
-
-    # 2. Velocity Burst: Simultaneous transaction spike and high speed
-    f2082 = pd.to_numeric(df['F2082'], errors='coerce').fillna(0)
-    f1692 = pd.to_numeric(df['F1692'], errors='coerce').fillna(0)
-    df['F_velocity_burst'] = f2082 * f1692
-
-    # 3. Round-Amount Flag: Mule syndicates typically transfer round sums
+    f2582 = pd.to_numeric(df['F2582'], errors='coerce').fillna(0)
+    f2678 = pd.to_numeric(df['F2678'], errors='coerce').fillna(0)
     f3836 = pd.to_numeric(df['F3836'], errors='coerce').fillna(0)
-    df['F_round_amount'] = ((f3836 > 0) & (f3836 % 10000 == 0)).astype(np.float32)
+    f321  = pd.to_numeric(df['F321'], errors='coerce').fillna(0)
+    f115  = pd.to_numeric(df['F115'], errors='coerce').fillna(0)
 
-    # 4. Passthrough Efficiency: Money exits account as quickly as it enters
-    f321 = pd.to_numeric(df['F321'], errors='coerce').fillna(0)
-    f115 = pd.to_numeric(df['F115'], errors='coerce').fillna(0)
-    df['F_passthrough'] = f321 / (f115 + 1e-5)
+    df['F_ratio_3043_2956'] = f3043 / (f2956 + 1e-5)
+    df['F_ratio_2582_2678'] = f2582 / (f2678 + 1e-5)
+    df['F_mod10k_3836']     = ((f3836 > 0) & (f3836 % 10000 == 0)).astype(np.float32)
+    df['F_ratio_321_115']   = f321 / (f115 + 1e-5)
 
     return df
 
@@ -164,8 +157,8 @@ def evaluate_stratified_kfold_cascade(X, y, n_splits=5, target_precision=0.90):
         stage1_test_prob = stage1.predict_proba(X_test)[:, 1]
         oof_stage1_probs[test_idx] = stage1_test_prob
 
-        # Stage 1 screening threshold (e.g. 0.30 - catch >85% of mules)
-        s1_thresh = 0.30
+        # Stage 1 calibrated wide-gate screening threshold (captures ~70% of mules)
+        s1_thresh = 0.07
         stage1_train_pass = stage1_train_prob >= s1_thresh
         stage1_test_pass = stage1_test_prob >= s1_thresh
 
@@ -250,8 +243,8 @@ def evaluate_stratified_kfold_cascade(X, y, n_splits=5, target_precision=0.90):
         'high_confidence_precision': round(float(total_prec), 4),
         'recall': round(float(total_rec), 4),
         'confusion_matrix': cm.tolist(),
-        'stage1_threshold': 0.30,
-        'stage2_threshold': 0.75,
+        'stage1_threshold': 0.07,
+        'stage2_threshold': 0.65,
     }
 
     return cv_metrics
@@ -283,8 +276,8 @@ def train_production_models(X, y):
     stage1.fit(X, y)
     s1_probs = stage1.predict_proba(X)[:, 1]
     
-    # Filter candidates for Stage 2
-    s1_mask = s1_probs >= 0.30
+    # Filter candidates for Stage 2 (Calibrated wide gate: S1 >= 0.07)
+    s1_mask = s1_probs >= 0.07
     X_s2 = X[s1_mask]
     y_s2 = y[s1_mask]
 

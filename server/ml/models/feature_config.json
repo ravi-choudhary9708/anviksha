@@ -18,10 +18,10 @@
     "F3889",
     "F3891",
     "F3894",
-    "F_turnover_ratio",
-    "F_velocity_burst",
-    "F_round_amount",
-    "F_passthrough"
+    "F_ratio_3043_2956",
+    "F_ratio_2582_2678",
+    "F_mod10k_3836",
+    "F_ratio_321_115"
   ],
   "feature_count": 22,
   "base_golden_features": [
@@ -45,40 +45,40 @@
     "F3894"
   ],
   "derived_features": [
-    "F_turnover_ratio",
-    "F_velocity_burst",
-    "F_round_amount",
-    "F_passthrough"
+    "F_ratio_3043_2956",
+    "F_ratio_2582_2678",
+    "F_mod10k_3836",
+    "F_ratio_321_115"
   ],
   "mappings": {},
   "feature_importance": {
-    "F115": 0.070714,
-    "F321": 0.048683,
-    "F527": 0.047386,
-    "F531": 0.050358,
-    "F670": 0.05769,
-    "F1692": 0.030348,
-    "F2082": 0.056937,
-    "F2122": 0.069757,
-    "F2582": 0.050035,
-    "F2678": 0.052112,
-    "F2737": 0.063093,
-    "F2956": 0.053137,
-    "F3043": 0.063749,
-    "F3836": 0.045808,
-    "F3887": 0.044669,
+    "F115": 0.063134,
+    "F321": 0.041312,
+    "F527": 0.043233,
+    "F531": 0.04449,
+    "F670": 0.050021,
+    "F1692": 0.063021,
+    "F2082": 0.059523,
+    "F2122": 0.066192,
+    "F2582": 0.046416,
+    "F2678": 0.056776,
+    "F2737": 0.05937,
+    "F2956": 0.054499,
+    "F3043": 0.055306,
+    "F3836": 0.042381,
+    "F3887": 0.039758,
     "F3889": 0.0,
     "F3891": 0.0,
-    "F3894": 0.053877,
-    "F_turnover_ratio": 0.089477,
-    "F_velocity_burst": 0.0,
-    "F_round_amount": 0.0,
-    "F_passthrough": 0.05217
+    "F3894": 0.050413,
+    "F_ratio_3043_2956": 0.079415,
+    "F_ratio_2582_2678": 0.034536,
+    "F_mod10k_3836": 0.0,
+    "F_ratio_321_115": 0.050202
   },
   "thresholds": {
-    "screening_tier_stage1": 0.3,
-    "high_risk_tier_stage2": 0.75,
-    "medium_risk": 0.45,
+    "screening_tier_stage1": 0.07,
+    "high_risk_tier_stage2": 0.65,
+    "medium_risk": 0.39,
     "anomaly": -0.05
   },
   "golden_features": {
@@ -139,13 +139,12 @@
       "F3836",
       "F3887",
       "F3889",
-      "F3891",
       "F3894"
     ]
   },
   "model_info": {
     "trained_on": "Bank of India Real Dataset (9,082 accounts)",
-    "training_timestamp": "2026-10-24T15:23:45.204665",
+    "training_timestamp": "2026-10-24T16:08:47.817580",
     "architecture": "Two-Stage Cascade (Method 1) + Discriminative Features (Method 3)",
     "cv_strategy": "Stratified 5-Fold Repeated Out-of-Fold"
   }

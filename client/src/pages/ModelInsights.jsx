@@ -135,11 +135,11 @@ export default function ModelInsights() {
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <span style={{ background: '#3b82f6', color: '#fff', fontSize: '0.75rem', fontWeight: 'bold', padding: '3px 8px', borderRadius: '4px' }}>METHOD 1</span>
-          <span style={{ fontSize: '0.9rem', color: 'var(--text-main)' }}><strong>Two-Stage Cascade:</strong> Stage 1 High Recall Filter (≥0.30) → Stage 2 High Precision Sieve (≥0.75)</span>
+          <span style={{ fontSize: '0.9rem', color: 'var(--text-main)' }}><strong>Calibrated Cascade:</strong> Stage 1 Wide Filter (≥0.07, ~70% Recall) → Stage 2 Precision Sieve (≥0.65)</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <span style={{ background: '#8b5cf6', color: '#fff', fontSize: '0.75rem', fontWeight: 'bold', padding: '3px 8px', borderRadius: '4px' }}>METHOD 3</span>
-          <span style={{ fontSize: '0.9rem', color: 'var(--text-main)' }}><strong>Engineered Signals:</strong> Turnover Ratio, Velocity Bursts, Passthrough, Round Amounts</span>
+          <span style={{ fontSize: '0.9rem', color: 'var(--text-main)' }}><strong>Mathematical Features:</strong> Flow Ratios (F3043/F2956, F2582/F2678), Passthrough, Round Multiples</span>
         </div>
       </div>
 
@@ -205,7 +205,7 @@ export default function ModelInsights() {
           <div className="section-card">
             <h3><Target size={18} /> Confusion Matrix (5-Fold Stratified Out-of-Fold)</h3>
             <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: 12 }}>
-              High-Confidence Priority Queue: <strong>91.3% Precision</strong> (21 True Mules vs only 2 False Alarms). Borderline cases are escalated to Graph Ring Analysis & Edge Shield.
+              High-Confidence Priority Queue: In-fold threshold tuning isolates high-confidence candidates (21 True Mules vs 2 False Alarms pooled OOF; 45.5% on untouched holdout). Remaining accounts are triaged by Graph Syndicate Analysis.
             </p>
             <div style={{ display: 'flex', justifyContent: 'center' }}>
               <div className="confusion-grid">

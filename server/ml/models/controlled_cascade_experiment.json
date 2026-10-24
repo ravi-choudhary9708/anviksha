@@ -1,0 +1,302 @@
+{
+  "dev_summary": {
+    "total_accounts": 7265,
+    "mules": 65,
+    "legit": 7200
+  },
+  "holdout_summary": {
+    "total_accounts": 1817,
+    "mules": 16,
+    "legit": 1801
+  },
+  "issue_a_threshold_audit": {
+    "gate_030_candidate_count": 389,
+    "gate_007_candidate_count": 1247,
+    "p2_retrained_alerts_050": 34,
+    "p3_retrained_alerts_050": 26,
+    "p4_fixed_alerts_050": 102,
+    "p2_retrained_alerts_040": 47,
+    "p3_retrained_alerts_040": 36,
+    "p4_fixed_alerts_040": 156
+  },
+  "dev_matched_capacity": {
+    "20": {
+      "1. Single XGBoost": {
+        "TP": 13,
+        "FP": 7,
+        "precision": 65.0,
+        "recall": 20.0,
+        "fp_per_1k": 0.97
+      },
+      "2. Baseline Cascade (S1>=0.30)": {
+        "TP": 8,
+        "FP": 12,
+        "precision": 40.0,
+        "recall": 12.31,
+        "fp_per_1k": 1.67
+      },
+      "3. Wide Cascade (S1>=0.07, Retrained S2)": {
+        "TP": 13,
+        "FP": 7,
+        "precision": 65.0,
+        "recall": 20.0,
+        "fp_per_1k": 0.97
+      },
+      "4. Wide Cascade (S1>=0.07, Fixed S2)": {
+        "TP": 5,
+        "FP": 15,
+        "precision": 25.0,
+        "recall": 7.69,
+        "fp_per_1k": 2.08
+      }
+    },
+    "50": {
+      "1. Single XGBoost": {
+        "TP": 16,
+        "FP": 34,
+        "precision": 32.0,
+        "recall": 24.62,
+        "fp_per_1k": 4.72
+      },
+      "2. Baseline Cascade (S1>=0.30)": {
+        "TP": 15,
+        "FP": 35,
+        "precision": 30.0,
+        "recall": 23.08,
+        "fp_per_1k": 4.86
+      },
+      "3. Wide Cascade (S1>=0.07, Retrained S2)": {
+        "TP": 20,
+        "FP": 30,
+        "precision": 40.0,
+        "recall": 30.77,
+        "fp_per_1k": 4.17
+      },
+      "4. Wide Cascade (S1>=0.07, Fixed S2)": {
+        "TP": 8,
+        "FP": 42,
+        "precision": 16.0,
+        "recall": 12.31,
+        "fp_per_1k": 5.83
+      }
+    },
+    "100": {
+      "1. Single XGBoost": {
+        "TP": 19,
+        "FP": 81,
+        "precision": 19.0,
+        "recall": 29.23,
+        "fp_per_1k": 11.25
+      },
+      "2. Baseline Cascade (S1>=0.30)": {
+        "TP": 22,
+        "FP": 78,
+        "precision": 22.0,
+        "recall": 33.85,
+        "fp_per_1k": 10.83
+      },
+      "3. Wide Cascade (S1>=0.07, Retrained S2)": {
+        "TP": 25,
+        "FP": 75,
+        "precision": 25.0,
+        "recall": 38.46,
+        "fp_per_1k": 10.42
+      },
+      "4. Wide Cascade (S1>=0.07, Fixed S2)": {
+        "TP": 14,
+        "FP": 86,
+        "precision": 14.0,
+        "recall": 21.54,
+        "fp_per_1k": 11.94
+      }
+    },
+    "200": {
+      "1. Single XGBoost": {
+        "TP": 24,
+        "FP": 176,
+        "precision": 12.0,
+        "recall": 36.92,
+        "fp_per_1k": 24.44
+      },
+      "2. Baseline Cascade (S1>=0.30)": {
+        "TP": 30,
+        "FP": 170,
+        "precision": 15.0,
+        "recall": 46.15,
+        "fp_per_1k": 23.61
+      },
+      "3. Wide Cascade (S1>=0.07, Retrained S2)": {
+        "TP": 28,
+        "FP": 172,
+        "precision": 14.0,
+        "recall": 43.08,
+        "fp_per_1k": 23.89
+      },
+      "4. Wide Cascade (S1>=0.07, Fixed S2)": {
+        "TP": 23,
+        "FP": 177,
+        "precision": 11.5,
+        "recall": 35.38,
+        "fp_per_1k": 24.58
+      }
+    }
+  },
+  "dev_auc": {
+    "1. Single XGBoost": {
+      "roc_auc": 0.8327,
+      "pr_auc": 0.2603
+    },
+    "2. Baseline Cascade (S1>=0.30)": {
+      "roc_auc": 0.8343,
+      "pr_auc": 0.1932
+    },
+    "3. Wide Cascade (S1>=0.07, Retrained S2)": {
+      "roc_auc": 0.8397,
+      "pr_auc": 0.3056
+    },
+    "4. Wide Cascade (S1>=0.07, Fixed S2)": {
+      "roc_auc": 0.8313,
+      "pr_auc": 0.1114
+    }
+  },
+  "holdout_matched_capacity": {
+    "11": {
+      "1. Single XGBoost": {
+        "TP": 4,
+        "FP": 7,
+        "precision": 36.36,
+        "recall": 25.0,
+        "fp_per_1k": 3.89
+      },
+      "2. Baseline Cascade (S1>=0.30)": {
+        "TP": 5,
+        "FP": 6,
+        "precision": 45.45,
+        "recall": 31.25,
+        "fp_per_1k": 3.33
+      },
+      "3. Wide Cascade (S1>=0.07, Retrained S2)": {
+        "TP": 4,
+        "FP": 7,
+        "precision": 36.36,
+        "recall": 25.0,
+        "fp_per_1k": 3.89
+      },
+      "4. Wide Cascade (S1>=0.07, Fixed S2)": {
+        "TP": 4,
+        "FP": 7,
+        "precision": 36.36,
+        "recall": 25.0,
+        "fp_per_1k": 3.89
+      }
+    },
+    "20": {
+      "1. Single XGBoost": {
+        "TP": 5,
+        "FP": 15,
+        "precision": 25.0,
+        "recall": 31.25,
+        "fp_per_1k": 8.33
+      },
+      "2. Baseline Cascade (S1>=0.30)": {
+        "TP": 6,
+        "FP": 14,
+        "precision": 30.0,
+        "recall": 37.5,
+        "fp_per_1k": 7.77
+      },
+      "3. Wide Cascade (S1>=0.07, Retrained S2)": {
+        "TP": 6,
+        "FP": 14,
+        "precision": 30.0,
+        "recall": 37.5,
+        "fp_per_1k": 7.77
+      },
+      "4. Wide Cascade (S1>=0.07, Fixed S2)": {
+        "TP": 5,
+        "FP": 15,
+        "precision": 25.0,
+        "recall": 31.25,
+        "fp_per_1k": 8.33
+      }
+    },
+    "50": {
+      "1. Single XGBoost": {
+        "TP": 6,
+        "FP": 44,
+        "precision": 12.0,
+        "recall": 37.5,
+        "fp_per_1k": 24.43
+      },
+      "2. Baseline Cascade (S1>=0.30)": {
+        "TP": 7,
+        "FP": 43,
+        "precision": 14.0,
+        "recall": 43.75,
+        "fp_per_1k": 23.88
+      },
+      "3. Wide Cascade (S1>=0.07, Retrained S2)": {
+        "TP": 8,
+        "FP": 42,
+        "precision": 16.0,
+        "recall": 50.0,
+        "fp_per_1k": 23.32
+      },
+      "4. Wide Cascade (S1>=0.07, Fixed S2)": {
+        "TP": 8,
+        "FP": 42,
+        "precision": 16.0,
+        "recall": 50.0,
+        "fp_per_1k": 23.32
+      }
+    },
+    "100": {
+      "1. Single XGBoost": {
+        "TP": 9,
+        "FP": 91,
+        "precision": 9.0,
+        "recall": 56.25,
+        "fp_per_1k": 50.53
+      },
+      "2. Baseline Cascade (S1>=0.30)": {
+        "TP": 9,
+        "FP": 91,
+        "precision": 9.0,
+        "recall": 56.25,
+        "fp_per_1k": 50.53
+      },
+      "3. Wide Cascade (S1>=0.07, Retrained S2)": {
+        "TP": 11,
+        "FP": 89,
+        "precision": 11.0,
+        "recall": 68.75,
+        "fp_per_1k": 49.42
+      },
+      "4. Wide Cascade (S1>=0.07, Fixed S2)": {
+        "TP": 9,
+        "FP": 91,
+        "precision": 9.0,
+        "recall": 56.25,
+        "fp_per_1k": 50.53
+      }
+    }
+  },
+  "holdout_auc": {
+    "1. Single XGBoost": {
+      "roc_auc": 0.8334,
+      "pr_auc": 0.2709
+    },
+    "2. Baseline Cascade (S1>=0.30)": {
+      "roc_auc": 0.8516,
+      "pr_auc": 0.2769
+    },
+    "3. Wide Cascade (S1>=0.07, Retrained S2)": {
+      "roc_auc": 0.8594,
+      "pr_auc": 0.3045
+    },
+    "4. Wide Cascade (S1>=0.07, Fixed S2)": {
+      "roc_auc": 0.8513,
+      "pr_auc": 0.2699
+    }
+  }
+}

@@ -27,7 +27,23 @@ export function extractFeatures(transaction, accountId) {
   const dsFeatures = transaction.dataset_features || {};
 
   for (const name of FEATURE_NAMES) {
-    let val = dsFeatures[name] !== undefined ? dsFeatures[name] : 0;
+    let val = dsFeatures[name];
+
+    // Compute derived features dynamically if not present
+    if (val === undefined) {
+      if (name === 'F_ratio_3043_2956' || name === 'F_turnover_ratio') {
+        val = Number(dsFeatures.F3043 || 0) / (Number(dsFeatures.F2956 || 0) + 1e-5);
+      } else if (name === 'F_ratio_2582_2678') {
+        val = Number(dsFeatures.F2582 || 0) / (Number(dsFeatures.F2678 || 0) + 1e-5);
+      } else if (name === 'F_mod10k_3836' || name === 'F_round_amount') {
+        const amt = Number(dsFeatures.F3836 || 0);
+        val = (amt > 0 && amt % 10000 === 0) ? 1.0 : 0.0;
+      } else if (name === 'F_ratio_321_115' || name === 'F_passthrough') {
+        val = Number(dsFeatures.F321 || 0) / (Number(dsFeatures.F115 || 0) + 1e-5);
+      } else {
+        val = 0;
+      }
+    }
 
     if (featureConfig && featureConfig.mappings && featureConfig.mappings[name]) {
       const mapping = featureConfig.mappings[name];

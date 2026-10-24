@@ -1,0 +1,171 @@
+{
+  "test_1_matched_capacity": {
+    "23": {
+      "1. Baseline XGBoost": {
+        "capacity_k": 23,
+        "TP": 16,
+        "FP": 7,
+        "precision_pct": 69.57,
+        "recall_pct": 19.75,
+        "fp_per_1000_legit": 0.78
+      },
+      "2. Fused ML + Graph": {
+        "capacity_k": 23,
+        "TP": 9,
+        "FP": 14,
+        "precision_pct": 39.13,
+        "recall_pct": 11.11,
+        "fp_per_1000_legit": 1.56
+      },
+      "3. Cascade + Graph Synergy": {
+        "capacity_k": 23,
+        "TP": 12,
+        "FP": 11,
+        "precision_pct": 52.17,
+        "recall_pct": 14.81,
+        "fp_per_1000_legit": 1.22
+      }
+    },
+    "50": {
+      "1. Baseline XGBoost": {
+        "capacity_k": 50,
+        "TP": 22,
+        "FP": 28,
+        "precision_pct": 44.0,
+        "recall_pct": 27.16,
+        "fp_per_1000_legit": 3.11
+      },
+      "2. Fused ML + Graph": {
+        "capacity_k": 50,
+        "TP": 18,
+        "FP": 32,
+        "precision_pct": 36.0,
+        "recall_pct": 22.22,
+        "fp_per_1000_legit": 3.56
+      },
+      "3. Cascade + Graph Synergy": {
+        "capacity_k": 50,
+        "TP": 15,
+        "FP": 35,
+        "precision_pct": 30.0,
+        "recall_pct": 18.52,
+        "fp_per_1000_legit": 3.89
+      }
+    },
+    "100": {
+      "1. Baseline XGBoost": {
+        "capacity_k": 100,
+        "TP": 25,
+        "FP": 75,
+        "precision_pct": 25.0,
+        "recall_pct": 30.86,
+        "fp_per_1000_legit": 8.33
+      },
+      "2. Fused ML + Graph": {
+        "capacity_k": 100,
+        "TP": 27,
+        "FP": 73,
+        "precision_pct": 27.0,
+        "recall_pct": 33.33,
+        "fp_per_1000_legit": 8.11
+      },
+      "3. Cascade + Graph Synergy": {
+        "capacity_k": 100,
+        "TP": 26,
+        "FP": 74,
+        "precision_pct": 26.0,
+        "recall_pct": 32.1,
+        "fp_per_1000_legit": 8.22
+      }
+    },
+    "200": {
+      "1. Baseline XGBoost": {
+        "capacity_k": 200,
+        "TP": 28,
+        "FP": 172,
+        "precision_pct": 14.0,
+        "recall_pct": 34.57,
+        "fp_per_1000_legit": 19.11
+      },
+      "2. Fused ML + Graph": {
+        "capacity_k": 200,
+        "TP": 34,
+        "FP": 166,
+        "precision_pct": 17.0,
+        "recall_pct": 41.98,
+        "fp_per_1000_legit": 18.44
+      },
+      "3. Cascade + Graph Synergy": {
+        "capacity_k": 200,
+        "TP": 30,
+        "FP": 170,
+        "precision_pct": 15.0,
+        "recall_pct": 37.04,
+        "fp_per_1000_legit": 18.89
+      }
+    }
+  },
+  "test_2_graph_ablation": {
+    "without_graph": {
+      "TP": 16,
+      "FP": 28,
+      "TN": 8973,
+      "FN": 65,
+      "precision_pct": 36.36,
+      "recall_pct": 19.75,
+      "fp_per_1000": 3.11
+    },
+    "with_graph": {
+      "TP": 15,
+      "FP": 25,
+      "TN": 8976,
+      "FN": 66,
+      "precision_pct": 37.5,
+      "recall_pct": 18.52,
+      "fp_per_1000": 2.78
+    },
+    "delta": {
+      "delta_precision_pct": 1.14,
+      "delta_false_positives": -3,
+      "delta_true_positives": -1
+    }
+  },
+  "test_3_untouched_holdout": [
+    {
+      "name": "1. Baseline XGBoost (Holdout)",
+      "TP": 6,
+      "FP": 35,
+      "TN": 1766,
+      "FN": 10,
+      "precision": 14.63,
+      "recall": 37.5,
+      "fp_per_1k": 19.43,
+      "roc_auc": 0.8305,
+      "pr_auc": 0.2719
+    },
+    {
+      "name": "2. Frozen Two-Stage Cascade",
+      "TP": 5,
+      "FP": 6,
+      "TN": 1795,
+      "FN": 11,
+      "precision": 45.45,
+      "recall": 31.25,
+      "fp_per_1k": 3.33,
+      "roc_auc": 0.8485,
+      "pr_auc": 0.2582
+    },
+    {
+      "name": "3. Fused ML + Graph (Holdout)",
+      "TP": 5,
+      "FP": 13,
+      "TN": 1788,
+      "FN": 11,
+      "precision": 27.78,
+      "recall": 31.25,
+      "fp_per_1k": 7.22,
+      "roc_auc": 0.8473,
+      "pr_auc": 0.2768
+    }
+  ]
+}
