@@ -18,14 +18,14 @@
 
 In the initial iteration of the system, this generator built synthetic behaviors (like rapid "fan-in" or "pass-through" sequences) and extracted 19 real-time graph features.
 
-**Currently**, the system is powered entirely by the provided `DataSet.csv` containing over 9000 rows with 18 abstract features (`F115` through `F3894`) and a target variable (`F3924`).
+**Currently**, the system is powered entirely by the provided `DataSet.csv` containing **9,082 real BOI account records** (81 confirmed mule accounts and 9,001 legitimate accounts) with 18 golden tabular features (`F115` through `F3894`) and ground truth target variable (`F3924`).
 
 ### How It Works
 
-1. **Pre-loading Data**: During Python training (`train_model.py`), a lightweight `dataset_features.json` file is exported.
-2. **Booting**: The `transaction-generator.js` loads this JSON file into memory on startup.
-3. **Sampling**: Every 2 seconds (configurable), the generator randomly selects a row from the dataset. 
-4. **Fraud Probability**: The generator deliberately selects fraud rows (where `F3924 = 1`) ~10% of the time to ensure the dashboard has alerts to display. 
+1. **Pre-loading Data**: Python preprocessing in `train_model.py` cleans the raw CSV, performs missing value imputation, and exports a lightweight `dataset_features.json` (9,082 records).
+2. **Booting**: On startup, `transaction-generator.js` synchronously reads this JSON file into memory (`[GENERATOR] Loaded 9082 real BOI records`).
+3. **Sampling**: Every 2 seconds (configurable via `SIMULATION_INTERVAL`), the generator selects a row from the real dataset.
+4. **Controlled Sampling**: To enable realistic live demonstration without waiting hours for the 1:111 natural mule event rate, the generator picks a known mule pattern ~10% of the time, allowing judges to observe the Two-Stage Sieve and alert generation live. 
 
 ```javascript
 // Inside transaction-generator.js

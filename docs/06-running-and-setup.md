@@ -21,13 +21,16 @@
 
 | Tool | Min Version | Check | Install |
 |------|-------------|-------|---------|
-| Node.js | v20+ | `node --version` | [nodejs.org](https://nodejs.org) |
-| npm | v10+ | `npm --version` | Comes with Node.js |
-| Python | v3.9+ | `python --version` | [python.org](https://python.org) |
-| pip | any | `pip --version` | Comes with Python |
+| Node.js | v22.5.0+ | `node --version` | [nodejs.org](https://nodejs.org) (v22+ includes native `node:sqlite`) |
+| npm | v10+ | `npm --version` | Included with Node.js |
+| Python | v3.9+ (Optional) | `python --version` | [python.org](https://python.org) (Only if re-training models from scratch) |
+| pip | any (Optional) | `pip --version` | Included with Python |
+
+> [!NOTE]
+> **No C++ Build Tools Needed:** Anviksha uses the official Node.js native SQLite module (`node:sqlite`). You do **not** need Visual Studio C++ Build Tools or `node-gyp`. `npm install` installs with zero compilation errors on Windows.
 
 **Optional:**
-- A **Gemini API key** — get one free at [ai.google.dev](https://ai.google.dev). If not set, the system uses template explanations.
+- A **Gemini API key** — get one free at [ai.google.dev](https://ai.google.dev). If not set, the system uses built-in template explanations.
 
 ---
 
@@ -39,7 +42,7 @@
 copy .env.example .env
 ```
 
-Edit `.env`:
+Edit `.env` (optional, default values work out of the box):
 ```env
 PORT=3001
 DB_PATH=./data/anviksha.db
@@ -47,24 +50,31 @@ SIMULATION_INTERVAL=2000
 GEMINI_API_KEY=             ← add your key here, or leave blank
 ```
 
-### Step 2: Start via Docker Compose (Recommended)
-
-The entire microservices architecture (Go Ingestion, Redpanda Kafka, Redis, Node Backend, React Frontend) is orchestrated via Docker Compose.
+### Step 2: Install dependencies and seed
 
 ```bash
-docker-compose up --build
+npm install
+npm run seed
 ```
 
-*Note: The Node.js container automatically installs dependencies, builds the Vite frontend, and seeds the SQLite database on startup.*
+### Step 3: Run full stack
 
-### Step 3: Open the dashboard
+```bash
+npm run dev
+```
+
+Both backend (port 3001) and frontend (port 5173) will launch concurrently.
+
+### Step 4: Open the dashboard
 
 Navigate to **http://localhost:5173** in your browser.
 
-> **Optional: Standalone Mode**
-> If you don't have Docker, you can run the system in standalone mode (which bypasses the Go microservice and Kafka, posting directly to Node).
-> 1. `npm run setup`
-> 2. `npm run dev`
+> **Docker Support:**
+> If you wish to run the full microservice stack including Go TLS Ingestion and Redpanda Kafka broker:
+> ```bash
+> docker-compose up --build
+> ```
+> If Kafka is not running, Anviksha automatically falls back to standalone local direct-ingestion mode without any interruption.
 
 ---
 
@@ -221,11 +231,15 @@ When you run `npm run dev:server`, here is exactly what happens in `server/index
 
 ### Good startup logs:
 ```
-[DB] SQLite initialized at ./data/anviksha.db
-[ML] ✅ XGBoost ONNX model loaded           ← Real ML is active
-[ML] ✅ Isolation Forest ONNX model loaded   ← Both models loaded
-[ML] ✅ Feature config loaded
-[ML] 🚀 ONNX inference engine ready (real ML models)
+[DB] ✅ Node.js native SQLite initialized at C:\Users\ravi\Desktop\anviksha\data\anviksha.db
+[GENERATOR] Loaded 9082 real BOI records
+╔══════════════════════════════════════════════╗
+║   Anviksha — Mule Account Detection System   ║
+║   BOI Hackathon 2026                         ║
+╚══════════════════════════════════════════════╝
+[ML] ✅ XGBoost ONNX model loaded (18 BOI golden features)
+[ML] ✅ Isolation Forest ONNX model loaded
+[ML] ✅ Feature config: 18 features (Two-Stage Hierarchical Classifier ready)
 [GRAPH] Initialized with 50 nodes and 192 edges  ← Graph from DB
 [GENERATOR] Starting transaction generator (interval: 2000ms)
 [I4C FEED] Starting regulatory feed simulator (avg interval: 45000ms)

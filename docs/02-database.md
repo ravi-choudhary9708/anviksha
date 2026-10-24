@@ -18,16 +18,16 @@
 
 ## Database Engine
 
-**SQLite** via the `better-sqlite3` npm package.
+**Native SQLite** via Node.js built-in `node:sqlite` (`DatabaseSync`) with automatic fallback to `better-sqlite3`.
 
-Why SQLite?
-- **Zero installation** — no PostgreSQL, MySQL, or Docker required
-- **Synchronous API** — no async/await complexity in DB operations
-- **File-based** — the entire database is `data/anviksha.db` (easy to inspect, reset, backup)
-- **Fast** — `better-sqlite3` is the fastest SQLite binding for Node.js
-- **Hackathon-perfect** — anyone can clone and run without DB setup
+Why Native SQLite?
+- **Zero C++ compiler required** — no Visual Studio, Python `node-gyp`, or native build toolchain needed on Windows
+- **Built into Node.js** — works out-of-the-box on Node 22.5+ and Node 24+
+- **Synchronous & Fast** — sub-millisecond execution times without async thread pool overhead
+- **File-based** — the entire database resides in `data/anviksha.db` (easy to inspect, reset, backup)
+- **Automatic Parameter Sanitization** — wrapped prepared statements ensure strict named-parameter compatibility
 
-The database file is created automatically at `data/anviksha.db` on first server startup.
+The database file is created automatically at `data/anviksha.db` on first server startup or when running `npm run seed`.
 
 ---
 

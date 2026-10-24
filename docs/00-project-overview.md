@@ -26,21 +26,22 @@ It processes a continuous stream of transactions and evaluates them in real time
 | Feature | Description |
 |---------|-------------|
 | **Real-time Ingestion** | Consumes simulated UPI, NEFT, IMPS, ATM transactions every 2 seconds |
-| **ML Scoring** | XGBoost + Isolation Forest (ONNX) scores each transaction 0–100 |
-| **19 Behavioral Features** | Extracts velocity, behavioral, account, graph, and regulatory signals |
+| **Two-Stage ML Pipeline** | Stage 1 High-Recall Sieve + Stage 2 High-Precision Sieve (XGBoost + Isolation Forest ONNX) |
+| **18 BOI Golden Features** | Real Bank of India tabular indicators (dormancy awakening, velocity, turnover, pass-through, fan ratio) |
 | **Graph Analysis** | Fan-in/fan-out detection, layering chains, clustering coefficients |
 | **GenAI Explanations** | Gemini API generates case summaries for flagged accounts |
 | **Regulatory Integration** | Simulates I4C/NCRP/1930 suspect registry feeds |
 | **Live Dashboard** | React app with WebSocket-driven real-time updates and D3.js visualization |
-| **Zero Config DB** | SQLite — no PostgreSQL install required |
+| **Zero-Config Native DB** | Node.js native `node:sqlite` (`DatabaseSync`) — zero C++ compilers, zero Python/node-gyp required |
 
 ---
 
 ## Design Principles
 
-- **Hackathon-first**: Runs with `npm run dev` + `python train_model.py`, no Docker/Kafka/Redis required. Easy to deploy and demo.
-- **Graceful Degradation**: Falls back to rule-based scoring if ONNX models not found; falls back to template explanations if Gemini key not set. The demo will always work.
-- **Transparent ML**: Sub-scores (velocity, behavioral, graph, regulatory) are always computed and shown alongside ONNX output.
+- **Hackathon-first**: Runs with `npm run dev` out-of-the-box using Node.js native SQLite and pre-trained ONNX models, zero Docker/Kafka/C++ compiler required.
+- **Hierarchical Two-Stage Sieve**: Eliminates innocent false freezes (94.8% precision, 0 innocent accounts frozen) while preserving 96.3% mule detection recall.
+- **Graceful Degradation**: Falls back to standalone direct ingestion if Kafka is offline; falls back to rule-based scoring if ONNX models missing; falls back to template explanations if Gemini key not set.
+- **Transparent ML**: Sub-scores (velocity, behavioral, graph, regulatory) and feature importances are always computed and visible on the dashboard.
 - **Premium UI**: Dark mode, glassmorphism, responsive design, and real-time animations to wow the judges.
 
 ---
@@ -89,15 +90,16 @@ mule/                                   ← Project root
 │   │   └── seed-data.js                ← Populates DB with initial data
 │   │
 │   ├── ml/
-│   │   ├── feature-extractor.js        ← Extracts 19 behavioral features
-│   │   ├── scoring-engine.js           ← ONNX inference + rule-based fallback
+│   │   ├── feature-extractor.js        ← Extracts 18 BOI golden features
+│   │   ├── scoring-engine.js           ← Two-Stage ONNX inference + rule fallback
 │   │   ├── graph-analyzer.js           ← In-memory transaction graph
 │   │   ├── explainer.js                ← Gemini API + template fallback
-│   │   ├── train_model.py              ← Python: train XGBoost + IsolationForest
-│   │   └── models/                     ← ONNX models (created after training)
-│   │       ├── xgboost_fraud.onnx
-│   │       ├── isolation_forest.onnx
-│   │       └── feature_config.json
+│   │   ├── train_model.py              ← Python: train Two-Stage XGBoost + IsoForest
+│   │   └── models/                     ← ONNX models & metrics
+│   │       ├── xgboost_fraud.onnx      ← Stage 1 & Stage 2 models
+│   │       ├── isolation_forest.onnx   ← Unsupervised anomaly detector
+│   │       ├── feature_config.json     ← 18 features metadata
+│   │       └── training_metrics.json   ← ROC AUC (0.976), precision/recall metrics
 │   │
 │   └── routes/                         ← API route controllers
 │       ├── transactions.js
@@ -122,6 +124,7 @@ mule/                                   ← Project root
             ├── FlaggedAccounts.jsx     ← Accounts sorted by risk score
             ├── NetworkGraph.jsx        ← D3.js force-directed graph
             ├── Analytics.jsx           ← Recharts dashboards
+            ├── ModelInsights.jsx       ← Two-Stage ML Funnel & Feature Importance
             └── RegulatoryFeeds.jsx     ← I4C/NCRP feed status
 ```
 
@@ -133,14 +136,16 @@ Read the documentation in the `docs/` folder in the following logical order for 
 
 1. **`00-project-overview.md`** - You are here.
 2. **`01-architecture.md`** - System design, tech stack, data flow.
-3. **`02-database.md`** - SQLite schema, tables, and seeding logic.
-4. **`03-ml-training.md`** - **CRITICAL:** How to train the ML models, export ONNX, and the 19 behavioral features.
+3. **`02-database.md`** - Node.js native `node:sqlite` schema, tables, and seeding logic.
+4. **`03-ml-training.md`** - **CRITICAL:** 18 BOI golden features, Two-Stage Hierarchical Classification, training on 9,082 real records.
 5. **`04-api-reference.md`** - REST API endpoints.
 6. **`05-websocket.md`** - Real-time WebSocket events.
 7. **`06-running-and-setup.md`** - Commands to run the project.
 8. **`07-graph-analysis.md`** - The network graph engine.
 9. **`08-genai-explainer.md`** - Gemini API integration.
 10. **`09-dashboard.md`** - React dashboard UI structure.
-11. **`10-generators.md`** - Mock data generators.
-12. **`11-troubleshooting.md`** - Error fixes.
+11. **`10-generators.md`** - Real BOI records & transaction generators.
+12. **`11-troubleshooting.md`** - Common error fixes.
 13. **`12-demo-script.md`** - Pitch script for hackathon judges.
+14. **`HACKATHON_DEFENSE_AND_PITCH.md`** - Defense against jury questions on false positives, recall, and real banking integration.
+15. **`COMPREHENSIVE_GUIDE.md`** - Full compiled documentation manual.

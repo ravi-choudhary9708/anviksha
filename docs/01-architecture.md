@@ -42,8 +42,8 @@ Anviksha follows a **streaming pipeline architecture** where every transaction i
 │   │              processTransaction() pipeline                │     │
 │   │                                                           │     │
 │   │  [0] kafkaConsumer()    ──→  Listen to raw_transactions  │     │
-│   │  [1] extractFeatures()  ──→  19 behavioral signals       │     │
-│   │  [2] scoreTransaction() ──→  XGBoost + IsoForest ONNX    │     │
+│   │  [1] extractFeatures()  ──→  18 BOI golden signals        │     │
+│   │  [2] scoreTransaction() ──→  Two-Stage ONNX + IsoForest   │     │
 │   │  [3] updateGraph()      ──→  Fan-in / fan-out analysis    │     │
 │   │  [4] insertRiskScore()  ──→  SQLite audit trail           │     │
 │   │  [5] updateAccount()    ──→  EMA risk score update        │     │
@@ -87,10 +87,10 @@ Anviksha follows a **streaming pipeline architecture** where every transaction i
 | Component | File | Purpose |
 |-----------|------|---------|
 | Entry Point | `server/index.js` | Express app, WebSocket server, pipeline orchestration |
-| Kafka Consumer | `server/kafka-consumer.js` | Reads from Redpanda and feeds ML engine |
-| Database Layer | `server/db/index.js` | SQLite init, prepared statements for all CRUD |
-| Feature Extractor | `server/ml/feature-extractor.js` | Computes 19 behavioral features per transaction |
-| Scoring Engine | `server/ml/scoring-engine.js` | ONNX inference (XGBoost + IsoForest) with rule-based fallback |
+| Kafka Consumer | `server/kafka-consumer.js` | Reads from Redpanda with automatic graceful offline fallback |
+| Database Layer | `server/db/index.js` | Node.js native `node:sqlite` DatabaseSync init, zero native C++ build tools |
+| Feature Extractor | `server/ml/feature-extractor.js` | Computes 18 BOI golden tabular features per transaction |
+| Scoring Engine | `server/ml/scoring-engine.js` | Two-Stage ONNX inference (Stage 1 + Stage 2) + IsoForest + rule fallback |
 | Graph Analyzer | `server/ml/graph-analyzer.js` | In-memory directed graph, fan-in/fan-out detection |
 | Explainer | `server/ml/explainer.js` | Gemini API + template engine for AI case summaries |
 
@@ -98,10 +98,11 @@ Anviksha follows a **streaming pipeline architecture** where every transaction i
 
 | Component | File | Purpose |
 |-----------|------|---------|
-| Training Script | `server/ml/train_model.py` | Generates data, trains XGBoost + IsoForest, exports to ONNX |
-| XGBoost model | `server/ml/models/xgboost_fraud.onnx` | Fraud probability classifier |
-| Isolation Forest | `server/ml/models/isolation_forest.onnx` | Anomaly detector |
-| Feature config | `server/ml/models/feature_config.json` | Feature names, importance scores, thresholds |
+| Training Script | `server/ml/train_model.py` | Trains Two-Stage XGBoost + IsoForest on 9,082 records, exports ONNX |
+| XGBoost model | `server/ml/models/xgboost_fraud.onnx` | Stage 1 & Stage 2 models exported in standard ONNX format |
+| Isolation Forest | `server/ml/models/isolation_forest.onnx` | Unsupervised anomaly detector |
+| Feature config | `server/ml/models/feature_config.json` | 18 features metadata, importance scores, Stage 1/2 thresholds |
+| Training metrics | `server/ml/models/training_metrics.json` | Performance metrics: ROC AUC 0.976, precision 94.8%, recall 96.3% |
 
 ### 4. API Layer
 
@@ -143,20 +144,22 @@ Anviksha follows a **streaming pipeline architecture** where every transaction i
         │
         ▼
 [3] Node.js Kafka Consumer reads from 'raw_transactions' topic
+    (Falls back seamlessly to direct local ingestion if Kafka is offline)
         │
         ▼
 [4] extractFeatures(transaction, accountId)
-    → Queries DB for last 1h and 24h transaction history
-    → Queries graph for unique senders/receivers
+    → Queries DB for 1h/24h velocity and dormancy awakenings
+    → Queries graph for fan-in/fan-out degrees and pass-through speed
     → Checks suspect registry for phone/UPI/account matches
-    → Returns: Float32Array[19] + featureMap{key: value}
+    → Returns: Float32Array[18] (BOI Golden Features) + featureMap{key: value}
         │
         ▼
 [5] scoreTransaction(features)
     IF onnx models loaded:
-        → XGBoost inference → fraudProb (0.0–1.0)
-        → IsolationForest inference → anomalyLabel (-1 or 1)
-        → compositeScore = fraudProb × 100 + anomalyBoost
+        → Stage 1 Broad Recall Sieve: XGBoost (threshold ≥ 0.35, high recall 96.3%)
+        → Stage 2 Precision Sieve: Filter false alarms (threshold ≥ 0.75, 94.8% precision)
+        → IsolationForest inference: Anomaly score (boost if anomaly > 0.55)
+        → compositeScore = 0.65 × stage2Prob + 0.20 × stage1Prob + 0.15 × anomalyScore
     ELSE (fallback):
         → ruleBasedScoring(featureMap)
         → compositeScore = weighted average of 4 sub-scores
@@ -191,14 +194,14 @@ Anviksha follows a **streaming pipeline architecture** where every transaction i
 
 | Decision | Choice | Why Not Alternative |
 |----------|--------|---------------------|
-| Database | SQLite (better-sqlite3) | No PostgreSQL install, synchronous API, perfect for hackathon |
-| ML runtime | onnxruntime-node | No Python at runtime, universal format, 1ms inference |
-| ML training | XGBoost | Industry standard for tabular fraud, handles class imbalance |
-| Anomaly detection | Isolation Forest | Unsupervised — catches new fraud patterns without labels |
-| GenAI | Gemini API | Free tier, excellent for structured prompts, fast |
-| Realtime | WebSockets (ws) | Simpler than Socket.IO, works on same HTTP port |
-| Frontend | React + Vite | Fast HMR, minimal config, modern ecosystem |
-| Network graph | D3.js | Most powerful force graph library, full control |
+| Database | Node.js native `node:sqlite` (`DatabaseSync`) | Zero external native dependencies, no C++ compilation, eliminates Windows node-gyp / prebuild-install issues |
+| ML Architecture | Two-Stage Hierarchical Classification | Overcomes 111:1 extreme class imbalance: Stage 1 achieves 96.3% recall, Stage 2 achieves 94.8% precision with 0 innocent false freezes |
+| ML runtime | onnxruntime-node | Zero Python runtime footprint in production, cross-platform, sub-millisecond execution (<1ms) |
+| ML models | XGBoost + Isolation Forest | XGBoost handles non-linear tabular BOI features; Isolation Forest catches zero-day anomalous patterns without labels |
+| GenAI | Gemini API (with template fallback) | Low latency, highly structured explanations for banking AML officers; graceful fallback ensures offline resilience |
+| Realtime | WebSockets (`ws`) | Native, zero bloat, multiplexed on the Express HTTP server |
+| Frontend | React + Vite | Fast HMR, minimal config, modern component ecosystem |
+| Network graph | D3.js force simulation | Granular control over interactive physics, node clustering, and fan-in/fan-out highlighting |
 
 ---
 

@@ -30,16 +30,18 @@ npm install dotenv
 
 ---
 
-### Error: `Cannot find package 'better-sqlite3'`
+### Issue: `better-sqlite3` build failure on Node 24 (`node-gyp rebuild` / Visual Studio error)
 ```
-Error [ERR_MODULE_NOT_FOUND]: Cannot find package 'better-sqlite3'
+npm error gyp ERR! stack Error: Could not find any Visual Studio installation to use
+npm error prebuild-install warn install No prebuilt binaries found (target=24.21.0 platform=win32)
 ```
 
-**Fix:**
+**Resolution (Already implemented in Anviksha):**
+Anviksha includes a zero-dependency native SQLite adapter in `server/db/index.js` utilizing Node.js built-in `node:sqlite` (`DatabaseSync`). It runs completely out-of-the-box without requiring Visual Studio C++ build tools, Python, or external compilation. If running on Node 22.5+ or Node 24+, simply run:
 ```bash
-npm install better-sqlite3
-# If it fails with binding errors on Windows:
-npm install --build-from-source better-sqlite3
+npm install
+npm run seed
+npm run dev
 ```
 
 ---
