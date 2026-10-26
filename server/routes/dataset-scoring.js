@@ -72,6 +72,12 @@ router.get('/visualizations/:name', (req, res) => {
     'feature_importance.png', 'golden_features_validation.png',
     'eda_class_distribution.png', 'eda_missing_values.png',
     'eda_golden_features_corr.png',
+    'benchmark_roc_curves.png', 'benchmark_pr_curves.png',
+    'benchmark_confusion_matrices.png', 'benchmark_fp_reduction_bar.png',
+    'benchmark_matched_capacity.png', 'benchmark_tier_funnel.png',
+    'cdac_coverage_donut.png', 'cdac_entity_rankings.png',
+    'cdac_fifo_dwell_time.png', 'cdac_inter_case_syndication.png',
+    'cdac_human_in_the_loop_tiers.png', 'cdac_ml_precision_and_proof.png'
   ];
 
   const fileName = req.params.name;
@@ -85,6 +91,45 @@ router.get('/visualizations/:name', (req, res) => {
   }
 
   res.sendFile(filePath);
+});
+
+router.get('/forensic-audit', (req, res) => {
+  try {
+    const reportPath = resolve(MODELS_DIR, 'cdac_forensic_audit_25cases.json');
+    if (!existsSync(reportPath)) {
+      return res.status(404).json({ status: 'not_generated', message: 'Run forensic_consistency_audit.py first' });
+    }
+    const report = JSON.parse(readFileSync(reportPath, 'utf-8'));
+    res.json({ status: 'ready', ...report });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.get('/cdac-summary', (req, res) => {
+  try {
+    const reportPath = resolve(MODELS_DIR, 'cdac_pipeline_result.json');
+    if (!existsSync(reportPath)) {
+      return res.status(404).json({ status: 'not_generated', message: 'Run cdac_pipeline.py first' });
+    }
+    const report = JSON.parse(readFileSync(reportPath, 'utf-8'));
+    res.json({ status: 'ready', ...report });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.get('/graph-ml-benchmark', (req, res) => {
+  try {
+    const reportPath = resolve(MODELS_DIR, 'comprehensive_graph_ml_benchmark.json');
+    if (!existsSync(reportPath)) {
+      return res.status(404).json({ status: 'not_generated', message: 'Run generate_comprehensive_benchmarks.py first' });
+    }
+    const report = JSON.parse(readFileSync(reportPath, 'utf-8'));
+    res.json({ status: 'ready', ...report });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 router.get('/eda-report', (req, res) => {

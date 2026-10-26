@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef } from 'react';
-import { Activity, AlertTriangle, Share2, BarChart2, Radio, Brain } from 'lucide-react';
+import { Activity, AlertTriangle, Share2, BarChart2, Radio, Brain, ShieldAlert } from 'lucide-react';
 import Header from './components/Header.jsx';
 import LiveFeed from './pages/LiveFeed.jsx';
 import FlaggedAccounts from './pages/FlaggedAccounts.jsx';
@@ -7,22 +7,24 @@ import NetworkGraph from './pages/NetworkGraph.jsx';
 import Analytics from './pages/Analytics.jsx';
 import RegulatoryFeeds from './pages/RegulatoryFeeds.jsx';
 import ModelInsights from './pages/ModelInsights.jsx';
+import CDACForensicInvestigation from './pages/CDACForensicInvestigation.jsx';
 import { useWebSocket, useApi } from './hooks/useAnviksha.js';
 import { Spinner } from './components/ui.jsx';
 
 const TABS = [
+  { id: 'cdac',       label: 'C-DAC Forensic',  icon: <ShieldAlert size={13} /> },
   { id: 'feed',       label: 'Live Feed',       icon: <Activity size={13} /> },
   { id: 'accounts',   label: 'Flagged Accounts', icon: <AlertTriangle size={13} /> },
   { id: 'graph',      label: 'Network Graph',    icon: <Share2 size={13} /> },
   { id: 'analytics',  label: 'Analytics',        icon: <BarChart2 size={13} /> },
-  { id: 'ml',         label: 'ML Model',         icon: <Brain size={13} /> },
+  { id: 'ml',         label: 'ML Benchmark',     icon: <Brain size={13} /> },
   { id: 'regulatory', label: 'Regulatory Feeds', icon: <Radio size={13} /> },
 ];
 
 const MAX_FEED_ITEMS = 120;
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState('feed');
+  const [activeTab, setActiveTab] = useState('cdac');
   const [feed, setFeed] = useState([]);          // Live transaction feed
   const [alerts, setAlerts] = useState([]);       // Real-time alerts
   const [graphData, setGraphData] = useState(null);
@@ -176,6 +178,7 @@ export default function App() {
         )}
 
         {}
+        {activeTab === 'cdac'       && <CDACForensicInvestigation />}
         {activeTab === 'feed'       && <LiveFeed feed={feed} />}
         {activeTab === 'accounts'   && <FlaggedAccounts alerts={allAlerts} />}
         {activeTab === 'graph'      && <NetworkGraph graphData={resolvedGraph} loading={graphLoading && !resolvedGraph} />}

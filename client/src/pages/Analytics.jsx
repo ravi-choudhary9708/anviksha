@@ -59,7 +59,7 @@ export default function Analytics({ stats }) {
 
   return (
     <div>
-      {/* Honest ML Metrics Hero — our secret weapon against fake 1.0 PR-AUC teams */}
+      {/* C-DAC Forensic Telemetry Hero */}
       <div style={{
         background: 'linear-gradient(135deg, rgba(0,212,255,0.08) 0%, rgba(139,92,246,0.08) 100%)',
         border: '1px solid rgba(0,212,255,0.2)',
@@ -72,21 +72,21 @@ export default function Analytics({ stats }) {
         flexWrap: 'wrap',
       }}>
         <div style={{ flex: 1, minWidth: 200 }}>
-          <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>Honest ML Performance — Real BOI Dataset</div>
-          <div style={{ fontSize: '2.2rem', fontWeight: 800, color: '#00d4ff', lineHeight: 1, fontFamily: 'var(--text-mono)' }}>53×</div>
-          <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginTop: 4 }}>Better than random chance at detecting mule accounts</div>
+          <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>C-DAC SOA Multi-Case Network Telemetry</div>
+          <div style={{ fontSize: '2.2rem', fontWeight: 800, color: '#00d4ff', lineHeight: 1, fontFamily: 'var(--text-mono)' }}>₹13.3B</div>
+          <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginTop: 4 }}>Total Forensic Volume Audited across 494,276 Transactions</div>
           <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: 4, fontFamily: 'var(--text-mono)', background: 'rgba(0,212,255,0.06)', padding: '4px 8px', borderRadius: 6, display: 'inline-block' }}>
-            PR-AUC 0.41 ÷ baseline 0.0089 = <span style={{ color: '#00d4ff', fontWeight: 700 }}>46×</span> · ROC uplift = <span style={{ color: '#00e676', fontWeight: 700 }}>+11%</span> above industry bar
+            25 Case Subjects · <span style={{ color: '#00d4ff', fontWeight: 700 }}>308,722 Nodes</span> · <span style={{ color: '#00e676', fontWeight: 700 }}>56,386 Cross-Case Shared Nodes (18.3%)</span>
           </div>
         </div>
         {[
-          { label: 'ROC-AUC', value: '0.94', color: '#00e676', sub: 'Industry standard: 0.85+' },
-          { label: 'PR-AUC', value: '0.41', color: '#00d4ff', sub: '46× better than random' },
-          { label: 'Precision', value: '91.3%', color: '#a78bfa', sub: 'High-conf priority queue' },
-          { label: 'CV ROC-AUC', value: '0.845', color: '#facc15', sub: '5-fold validated ±0.076' },
+          { label: 'Total Records', value: '494.3K', color: '#00e676', sub: '25 Excel SOA Statements' },
+          { label: 'Inter-Case Bridges', value: '7 Bridges', color: '#00d4ff', sub: 'Cross-syndicate sharing' },
+          { label: 'Priority Triage', value: '12 Cases', color: '#f59e0b', sub: 'Tier 1 & Tier 2 review' },
+          { label: 'Neutralized Corr', value: '0.796', color: '#a78bfa', sub: 'Spearman rank vs volume' },
         ].map(({ label, value, color, sub }) => (
           <div key={label} style={{ textAlign: 'center', minWidth: 100 }}>
-            <div style={{ fontSize: '1.6rem', fontWeight: 800, color, fontFamily: 'var(--text-mono)' }}>{value}</div>
+            <div style={{ fontSize: '1.4rem', fontWeight: 800, color, fontFamily: 'var(--text-mono)' }}>{value}</div>
             <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)', marginTop: 2 }}>{label}</div>
             <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginTop: 2 }}>{sub}</div>
           </div>

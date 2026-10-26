@@ -1,0 +1,153 @@
+{
+  "total_nodes": 308722,
+  "case_subject_nodes": 25,
+  "counterparty_nodes": 308697,
+  "total_directed_edges": 494275,
+  "shared_counterparties_across_cases_count": 56386,
+  "shared_counterparties_pct": 18.266,
+  "graph_topology_classification": "Interconnected Syndication Network (Substantial shared counterparty infrastructure)",
+  "inter_case_bridges": [
+    {
+      "case_1": "CASE_26_SOA_Tanish_Mukherjee",
+      "case_2": "CASE_48_SOA_Rachana_Dhar",
+      "shared_counterparties_count": 55702
+    },
+    {
+      "case_1": "CASE_4_SOA_Vivaan_Shah",
+      "case_2": "CASE_5_SOA_Aditya_Sethi",
+      "shared_counterparties_count": 365
+    },
+    {
+      "case_1": "CASE_2_SOA_Kabir_Arora",
+      "case_2": "CASE_4_SOA_Vivaan_Shah",
+      "shared_counterparties_count": 255
+    },
+    {
+      "case_1": "CASE_2_SOA_Kabir_Arora",
+      "case_2": "CASE_5_SOA_Aditya_Sethi",
+      "shared_counterparties_count": 93
+    },
+    {
+      "case_1": "CASE_6_SOA_Jack_Patil",
+      "case_2": "CASE_7_SOA_Wakeeta_Sheth",
+      "shared_counterparties_count": 67
+    },
+    {
+      "case_1": "CASE_8_SOA_Qushi_Chaudhary",
+      "case_2": "CASE_9_SOA_Faras_Swaminathan",
+      "shared_counterparties_count": 11
+    },
+    {
+      "case_1": "CASE_6_SOA_Jack_Patil",
+      "case_2": "CASE_9_SOA_Faras_Swaminathan",
+      "shared_counterparties_count": 1
+    }
+  ],
+  "sample_shared_counterparties": [
+    {
+      "counterparty": "AC_517718469910",
+      "connected_cases": [
+        "CASE_48_SOA_Rachana_Dhar",
+        "CASE_26_SOA_Tanish_Mukherjee"
+      ]
+    },
+    {
+      "counterparty": "AC_433193859003",
+      "connected_cases": [
+        "CASE_48_SOA_Rachana_Dhar",
+        "CASE_26_SOA_Tanish_Mukherjee"
+      ]
+    },
+    {
+      "counterparty": "AC_142935299233",
+      "connected_cases": [
+        "CASE_48_SOA_Rachana_Dhar",
+        "CASE_26_SOA_Tanish_Mukherjee"
+      ]
+    },
+    {
+      "counterparty": "AC_351540488240",
+      "connected_cases": [
+        "CASE_48_SOA_Rachana_Dhar",
+        "CASE_26_SOA_Tanish_Mukherjee"
+      ]
+    },
+    {
+      "counterparty": "AC_569698629311",
+      "connected_cases": [
+        "CASE_48_SOA_Rachana_Dhar",
+        "CASE_26_SOA_Tanish_Mukherjee"
+      ]
+    },
+    {
+      "counterparty": "AC_141473388759",
+      "connected_cases": [
+        "CASE_48_SOA_Rachana_Dhar",
+        "CASE_26_SOA_Tanish_Mukherjee"
+      ]
+    },
+    {
+      "counterparty": "AC_856859079014",
+      "connected_cases": [
+        "CASE_48_SOA_Rachana_Dhar",
+        "CASE_26_SOA_Tanish_Mukherjee"
+      ]
+    },
+    {
+      "counterparty": "AC_263026064511",
+      "connected_cases": [
+        "CASE_48_SOA_Rachana_Dhar",
+        "CASE_26_SOA_Tanish_Mukherjee"
+      ]
+    },
+    {
+      "counterparty": "AC_662978095197",
+      "connected_cases": [
+        "CASE_48_SOA_Rachana_Dhar",
+        "CASE_26_SOA_Tanish_Mukherjee"
+      ]
+    },
+    {
+      "counterparty": "AC_570827034994",
+      "connected_cases": [
+        "CASE_48_SOA_Rachana_Dhar",
+        "CASE_26_SOA_Tanish_Mukherjee"
+      ]
+    },
+    {
+      "counterparty": "AC_805890334287",
+      "connected_cases": [
+        "CASE_48_SOA_Rachana_Dhar",
+        "CASE_26_SOA_Tanish_Mukherjee"
+      ]
+    },
+    {
+      "counterparty": "AC_426619303418",
+      "connected_cases": [
+        "CASE_48_SOA_Rachana_Dhar",
+        "CASE_26_SOA_Tanish_Mukherjee"
+      ]
+    },
+    {
+      "counterparty": "AC_722876324345",
+      "connected_cases": [
+        "CASE_48_SOA_Rachana_Dhar",
+        "CASE_26_SOA_Tanish_Mukherjee"
+      ]
+    },
+    {
+      "counterparty": "AC_951703124073",
+      "connected_cases": [
+        "CASE_48_SOA_Rachana_Dhar",
+        "CASE_26_SOA_Tanish_Mukherjee"
+      ]
+    },
+    {
+      "counterparty": "AC_749999700756",
+      "connected_cases": [
+        "CASE_48_SOA_Rachana_Dhar",
+        "CASE_26_SOA_Tanish_Mukherjee"
+      ]
+    }
+  ]
+}

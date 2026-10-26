@@ -1,0 +1,22 @@
+{
+  "total_transactions": 494276,
+  "account_level_coverage": {
+    "total_unique_accounts": 254597,
+    "sparse_1_to_2": {
+      "count": 254590,
+      "pct": 100.0,
+      "description": "1-2 observed transactions: Limited-evidence risk indicators"
+    },
+    "moderate_3_to_19": {
+      "count": 0,
+      "pct": 0.0,
+      "description": "3-19 transactions: Tabular behavioral anomaly model"
+    },
+    "rich_20_plus": {
+      "count": 7,
+      "pct": 0.0,
+      "description": "20+ transactions: Full temporal sequence + graph topology analysis"
+    }
+  },
+  "entity_level_coverage": []
+}

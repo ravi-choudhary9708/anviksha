@@ -1,0 +1,23 @@
+{
+  "dataset": "C-DAC 25 SOA Dataset (494k transactions)",
+  "total_cases": 26,
+  "forensic_mules_count": 6,
+  "commercial_legit_count": 20,
+  "roc_auc": 0.9375,
+  "pr_auc": 0.8581,
+  "operational_precision_pct": 57.1,
+  "operational_recall_pct": 66.7,
+  "specificity_pct": 85.0,
+  "f1_score": 0.6154,
+  "true_positives": 4,
+  "false_positives": 3,
+  "true_negatives": 17,
+  "false_negatives": 2,
+  "mule_mean_score": 59.4,
+  "legit_mean_score": 31.2,
+  "separation_margin_points": 28.1,
+  "ks_statistic": 0.75,
+  "ks_p_value": 0.004795204795204794,
+  "spearman_volume_to_score": 0.1094,
+  "spearman_dwell_to_score": -0.264
+}

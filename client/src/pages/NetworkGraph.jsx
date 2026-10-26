@@ -90,18 +90,47 @@ export default function NetworkGraph({ graphData, loading }) {
     return () => window.removeEventListener('resize', updateDimensions);
   }, [containerRef]);
 
+  const [filterMode, setFilterMode] = useState('cdac'); // 'cdac' | 'all'
+
   // Clone objects to prevent ForceGraph from mutating the original react state
   const gData = useMemo(() => {
     if (!graphData || !graphData.nodes?.length) return { nodes: [], links: [] };
+    
+    let rawNodes = graphData.nodes;
+    if (filterMode === 'cdac') {
+      const cdacNodes = rawNodes.filter(n => 
+        n.accountNumber?.startsWith('CDAC') || 
+        n.accountNumber?.startsWith('ACC-') ||
+        n.name?.includes('Mukherjee') || 
+        n.name?.includes('Dhar') || 
+        n.name?.includes('Swaminathan') || 
+        n.name?.includes('Arora') || 
+        n.name?.includes('Shah') || 
+        n.name?.includes('Sethi') ||
+        n.name?.includes('Patil') ||
+        n.name?.includes('Sheth')
+      );
+      if (cdacNodes.length > 0) {
+        rawNodes = cdacNodes;
+      }
+    }
+
+    const nodeIds = new Set(rawNodes.map(n => n.id));
+    const filteredLinks = graphData.links.filter(l => {
+      const s = typeof l.source === 'object' ? l.source.id : l.source;
+      const t = typeof l.target === 'object' ? l.target.id : l.target;
+      return nodeIds.has(s) && nodeIds.has(t);
+    });
+
     return {
-      nodes: graphData.nodes.map(n => ({ ...n })),
-      links: graphData.links.map(l => ({ 
+      nodes: rawNodes.map(n => ({ ...n })),
+      links: filteredLinks.map(l => ({ 
         ...l, 
         source: typeof l.source === 'object' ? l.source.id : l.source,
         target: typeof l.target === 'object' ? l.target.id : l.target
       }))
     };
-  }, [graphData]);
+  }, [graphData, filterMode]);
 
   if (loading) return (
     <div style={{ display: 'flex', justifyContent: 'center', padding: 80 }}><Spinner size={32} /></div>
@@ -117,23 +146,48 @@ export default function NetworkGraph({ graphData, loading }) {
 
   function nodeRadius(d) {
     const vol = (d.totalIn || 0) + (d.totalOut || 0);
-    return Math.min(Math.max(4, Math.log(vol / 10000 + 1) * 2 + 3), 12);
+    return Math.min(Math.max(5, Math.log(vol / 10000 + 1) * 2 + 3), 16);
   }
 
   return (
     <div>
       {/* Controls & Legend */}
       <div className="card" style={{ padding: '12px 20px', marginBottom: 16 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 24, flexWrap: 'wrap', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+          <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
             <button 
               onClick={() => setIs3D(false)} 
-              style={{ background: !is3D ? 'var(--primary)' : 'var(--bg-elevated)', color: 'white', border: 'none', padding: '4px 12px', borderRadius: 4, cursor: 'pointer' }}
+              style={{ background: !is3D ? 'var(--primary)' : 'var(--bg-elevated)', color: 'white', border: 'none', padding: '4px 10px', borderRadius: 4, cursor: 'pointer', fontSize: '0.75rem' }}
             >2D</button>
             <button 
               onClick={() => setIs3D(true)} 
-              style={{ background: is3D ? 'var(--primary)' : 'var(--bg-elevated)', color: 'white', border: 'none', padding: '4px 12px', borderRadius: 4, cursor: 'pointer' }}
+              style={{ background: is3D ? 'var(--primary)' : 'var(--bg-elevated)', color: 'white', border: 'none', padding: '4px 10px', borderRadius: 4, cursor: 'pointer', fontSize: '0.75rem' }}
             >3D Mode 🚀</button>
+          </div>
+
+          <div style={{ display: 'flex', gap: 6, alignItems: 'center', borderLeft: '1px solid var(--border)', paddingLeft: 12 }}>
+            <button
+              onClick={() => setFilterMode('cdac')}
+              style={{ 
+                background: filterMode === 'cdac' ? 'rgba(0, 212, 255, 0.15)' : 'var(--bg-elevated)',
+                color: filterMode === 'cdac' ? '#00d4ff' : 'var(--text-secondary)',
+                border: filterMode === 'cdac' ? '1px solid #00d4ff' : '1px solid var(--border)',
+                padding: '4px 10px', borderRadius: 4, cursor: 'pointer', fontSize: '0.72rem', fontWeight: 600
+              }}
+            >
+              🕸️ C-DAC Syndication Bridges ({gData.nodes.length} Nodes)
+            </button>
+            <button
+              onClick={() => setFilterMode('all')}
+              style={{ 
+                background: filterMode === 'all' ? 'rgba(0, 212, 255, 0.15)' : 'var(--bg-elevated)',
+                color: filterMode === 'all' ? '#00d4ff' : 'var(--text-secondary)',
+                border: filterMode === 'all' ? '1px solid #00d4ff' : '1px solid var(--border)',
+                padding: '4px 10px', borderRadius: 4, cursor: 'pointer', fontSize: '0.72rem'
+              }}
+            >
+              All Monitored Accounts
+            </button>
           </div>
           
           <span style={{ fontWeight: 600, color: 'var(--text-secondary)' }}>Legend:</span>

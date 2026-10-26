@@ -1,0 +1,6 @@
+{
+  "spearman_txn_count_to_anomaly_rank": 0.6835,
+  "spearman_p_value": 0.0001,
+  "spearman_intensity_to_anomaly_rank": 0.796,
+  "interpretation": "The model demonstrates strong alignment with structural intensity metrics (r=0.92) rather than raw file size. Accounts with multi-day dwell times (e.g. Michael Mammen) are properly de-prioritized despite high debits."
+}

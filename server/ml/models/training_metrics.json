@@ -1,55 +1,28 @@
 {
-  "roc_auc": 0.8511,
-  "pr_auc": 0.2611,
-  "f1_score": 0.336,
-  "precision": 0.4773,
-  "recall": 0.2593,
-  "cv_roc_auc_mean": 0.8511,
-  "cv_roc_auc_std": 0.0473,
-  "confusion_matrix": [
-    [
-      8978,
-      23
-    ],
-    [
-      60,
-      21
-    ]
+  "dataset": "SOA Excel files (25 files, 494,276 transactions)",
+  "accounts_trained": 254597,
+  "anomalies_detected": 76374,
+  "anomaly_rate": 30.0,
+  "xgb_roc_auc": 1.0,
+  "xgb_pr_auc": 1.0,
+  "iso_contamination": 0.3,
+  "score_min": 0.0,
+  "score_max": 100.0,
+  "score_mean": 35.27,
+  "score_p75": 51.09,
+  "score_p90": 56.36,
+  "score_p95": 62.36,
+  "top_10_features": [
+    "avg_txn_amount",
+    "fan_in_score",
+    "total_credit",
+    "credit_concentration",
+    "txn_count",
+    "balance_cv",
+    "subthreshold_ratio",
+    "max_credit",
+    "round_amt_ratio",
+    "txns_per_day"
   ],
-  "best_threshold": 0.65,
-  "stage1_threshold": 0.07,
-  "stage2_threshold": 0.65,
-  "training_samples": 9082,
-  "test_samples": 9082,
-  "fraud_ratio": 0.0089,
-  "n_features": 22,
-  "golden_features": [
-    "F115",
-    "F321",
-    "F527",
-    "F531",
-    "F670",
-    "F1692",
-    "F2082",
-    "F2122",
-    "F2582",
-    "F2678",
-    "F2737",
-    "F2956",
-    "F3043",
-    "F3836",
-    "F3887",
-    "F3889",
-    "F3891",
-    "F3894"
-  ],
-  "derived_features": [
-    "F_ratio_3043_2956",
-    "F_ratio_2582_2678",
-    "F_mod10k_3836",
-    "F_ratio_321_115"
-  ],
-  "method_1_enabled": true,
-  "method_3_enabled": true,
-  "evaluation_type": "Stratified 5-Fold Cross-Validation (Leakage-Free)"
+  "evaluation_type": "5-Fold CV on Isolation Forest pseudo-labels"
 }
