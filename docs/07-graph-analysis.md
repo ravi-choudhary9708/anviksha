@@ -299,3 +299,25 @@ d3.forceSimulation(nodes)
 ```
 
 Clicking on a node opens an account detail panel showing risk score, recent transactions, and the AI explanation.
+
+---
+
+## C-DAC Multi-Case Syndication Discovery (The 7 Bridges)
+
+When graph traversal was executed across all **494,276 records** and **308,722 nodes** in the 25 C-DAC Statement of Accounts (SOA) statements, it uncovered that the 25 cases were **not isolated star graphs**:
+
+* **56,386 Counterparties (18.3% of the network)** are shared between 2 or more separate investigated case subjects!
+* **The 7 Major Cross-Statement Syndication Bridges**:
+
+| Bridge | Case Subject 1 | Case Subject 2 | Shared Counterparties | Forensic Significance |
+| :---: | :--- | :--- | :---: | :--- |
+| **Bridge 1** | **Tanish Mukherjee** (`26_SOA`) | **Rachana Dhar** (`48_SOA`) | **55,702** | Massive shared commercial/layering infrastructure |
+| **Bridge 2** | **Vivaan Shah** (`4_SOA`) | **Aditya Sethi** (`5_SOA`) | **365** | Interconnected mule cluster |
+| **Bridge 3** | **Kabir Arora** (`2_SOA`) | **Vivaan Shah** (`4_SOA`) | **255** | Triad syndicate member |
+| **Bridge 4** | **Kabir Arora** (`2_SOA`) | **Aditya Sethi** (`5_SOA`) | **93** | Triad syndicate member |
+| **Bridge 5** | **Jack Patil** (`6_SOA`) | **Wakeeta Sheth** (`7_SOA`) | **67** | Cross-statement counterparty sharing |
+| **Bridge 6** | **Qushi Chaudhary** (`8_SOA`) | **Faras Swaminathan** (`9_SOA`) | **11** | High-velocity funnel link |
+| **Bridge 7** | **Jack Patil** (`6_SOA`) | **Faras Swaminathan** (`9_SOA`) | **1** | Multi-case cross link |
+
+In the interactive UI (`client/src/pages/NetworkGraph.jsx`), analysts can click **`🕸️ C-DAC Syndication Bridges`** to filter directly to these cross-case connected clusters and view directional fund flow in 2D or 3D force physics.
+

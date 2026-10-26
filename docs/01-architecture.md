@@ -98,11 +98,12 @@ Anviksha follows a **streaming pipeline architecture** where every transaction i
 
 | Component | File | Purpose |
 |-----------|------|---------|
-| Training Script | `server/ml/train_model.py` | Trains Two-Stage XGBoost + IsoForest on 9,082 records, exports ONNX |
-| XGBoost model | `server/ml/models/xgboost_fraud.onnx` | Stage 1 & Stage 2 models exported in standard ONNX format |
+| Training Script | `server/ml/train_model.py` & `cdac_ml_proof_and_precision.py` | Trains XGBoost + IsoForest and generates objective forensic proof on C-DAC dataset |
+| XGBoost model | `server/ml/models/xgboost_fraud.onnx` | Trained tabular behavioral model exported to ONNX |
 | Isolation Forest | `server/ml/models/isolation_forest.onnx` | Unsupervised anomaly detector |
-| Feature config | `server/ml/models/feature_config.json` | 18 features metadata, importance scores, Stage 1/2 thresholds |
-| Training metrics | `server/ml/models/training_metrics.json` | Performance metrics: ROC AUC 0.976, precision 94.8%, recall 96.3% |
+| Feature config | `server/ml/models/feature_config.json` | 20 features metadata, importance scores, and thresholds |
+| Forensic Audit | `server/ml/models/cdac_forensic_audit_25cases.json` | 25-case audit with FIFO dwell times, evidence codes, and proof chains |
+| Proof Summary | `server/ml/models/cdac_ml_precision_summary.json` | Objective metrics: ROC-AUC 0.9375, PR-AUC 0.8581, Specificity 85.0%, Margin +28.1 pts |
 
 ### 4. API Layer
 
@@ -156,13 +157,13 @@ Anviksha follows a **streaming pipeline architecture** where every transaction i
         ▼
 [5] scoreTransaction(features)
     IF onnx models loaded:
-        → Stage 1 Broad Recall Sieve: XGBoost (threshold ≥ 0.35, high recall 96.3%)
-        → Stage 2 Precision Sieve: Filter false alarms (threshold ≥ 0.75, 94.8% precision)
-        → IsolationForest inference: Anomaly score (boost if anomaly > 0.55)
-        → compositeScore = 0.65 × stage2Prob + 0.20 × stage1Prob + 0.15 × anomalyScore
+        → XGBoost Classifier: Evaluates structural ratios & velocity bursts
+        → Isolation Forest: Unsupervised anomaly detection (catches novel zero-day patterns)
+        → Graph & FIFO multiplier: Adjusts risk score based on holding time & syndication bridges
+        → compositeScore = 0 to 100 normalized risk score
     ELSE (fallback):
         → ruleBasedScoring(featureMap)
-        → compositeScore = weighted average of 4 sub-scores
+        → compositeScore = weighted average of 4 forensic sub-scores (Velocity, Behavioral, Graph, Regulatory)
         │
         ▼
 [6] DB: INSERT INTO transactions (with risk_score, features_json)
